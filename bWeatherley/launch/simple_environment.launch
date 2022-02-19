@@ -1,0 +1,15 @@
+<launch>
+
+	<!-- <include file="$(find
+		gazebo_ros)/launch/empty_world.launch">
+			<arg name="world_name"
+				value="$(find bWeatherley)/worlds/simple_env_unjoined_scaled.world"/>
+	</include> -->
+
+	<include file="$(find
+		gazebo_ros)/launch/empty_world.launch">
+			<arg name="world_name"
+				value="$(find bWeatherley)/worlds/simple_env_v2_unjoined_scaled.world"/>
+	</include>
+
+</launch>

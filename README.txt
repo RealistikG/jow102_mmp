@@ -8,5 +8,12 @@ Module Code:		CS39440
 
 --- NOTES ---
 
-export TURTLEBOT3_MODEL=waffle_pi
-roslaunch jow102_mmp test1.launch
+Terminal 1:
+	roscore
+
+Terminal 2:
+	export TURTLEBOT3_MODEL=waffle_pi
+	roslaunch jow102_mmp test1.launch
+
+Terminal 3:
+	rosrun jow102_mmp test1

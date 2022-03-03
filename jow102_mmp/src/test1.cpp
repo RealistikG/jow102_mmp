@@ -6,11 +6,12 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <image_transport/image_transport.h>
 #include <cv_bridge/cv_bridge.h>
-//#include <sensor_msgs/image_encodings.h>
+
+using namespace cv;
 
 static const std::string OPENCV_WINDOW = "Image window";
 cv_bridge::CvImagePtr cv_ptr;
-using namespace cv;
+
 
 void image_cb(const sensor_msgs::ImageConstPtr& msg)
 {
@@ -40,7 +41,7 @@ void image_cb(const sensor_msgs::ImageConstPtr& msg)
     imshow("Warped img", imgWarp);
     waitKey(3);
 
-    //cv::imwrite("/impacs/jow102/catkin_ws/src/jow102_mmp/test_img.jpg", cv_ptr->image); //save test image
+    imwrite("/impacs/jow102/catkin_ws/src/jow102_mmp/test_img.jpg", cv_ptr->image); //save test image
 }
 
 int main(int argc, char **argv) {
@@ -56,11 +57,11 @@ int main(int argc, char **argv) {
     image_transport::Publisher pub = it.advertise("/image_converter/output_video", 1);
     namedWindow(OPENCV_WINDOW);
 
-    //ros::spinOnce();
-    while(true){
+    ros::spinOnce();
+    /*while(true){
         ros::spinOnce();
         pub.publish(cv_ptr->toImageMsg());
-    }
+    }*/
     return 0;
 }
 

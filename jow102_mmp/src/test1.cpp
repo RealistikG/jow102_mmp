@@ -28,20 +28,27 @@ void image_cb(const sensor_msgs::ImageConstPtr& msg)
     // Draw circle of radius 10 at coordinates (0, 0)
     //cv::circle(cv_ptr->image, cv::Point(0, 0), 10, CV_RGB(255,0,0));
 
-    float w = 45, h = 221;
-    Point2f src[4] = {{233, 262},{248, 268},{19, 316},{58, 339}};
+    // Pixel coordinates on image from which it will be warped
+    float w = 104, h = 233;
+    Point2f src_l[4] = {{246, 252},{268, 265},{16, 292},{105, 346}};
+    Point2f src_r[4] = {{391,265},{427,259},{540,355},{622,300}};
     Point2f dst[4] = {{0.0f, 0.0f},{w, 0.0f},{0.0f, h},{w, h}};
 
-    Mat matrix, imgWarp;
-    matrix = getPerspectiveTransform(src, dst);
-    warpPerspective(cv_ptr->image, imgWarp, matrix, Point(w,h));
+    // Warp image so left adn right lines can be tracked more easily
+    Mat matrix_l, matrix_r, imgWarp_l, imgWarp_r;
+    matrix_l = getPerspectiveTransform(src_l, dst);
+    matrix_r = getPerspectiveTransform(src_r, dst);
+    warpPerspective(cv_ptr->image, imgWarp_l, matrix_l, Point(w,h));
+    warpPerspective(cv_ptr->image, imgWarp_r, matrix_r, Point(w,h));
 
     // Update GUI Window
     imshow(OPENCV_WINDOW, cv_ptr->image);
-    imshow("Warped img", imgWarp);
+    imshow("img_l", imgWarp_l);
+    imshow("img_r", imgWarp_r);
+
     waitKey(3);
 
-    imwrite("/impacs/jow102/catkin_ws/src/jow102_mmp/test_img.jpg", cv_ptr->image); //save test image
+    //imwrite("/impacs/jow102/catkin_ws/src/jow102_mmp/test_img.jpg", cv_ptr->image); //save test image
 }
 
 int main(int argc, char **argv) {
@@ -57,11 +64,12 @@ int main(int argc, char **argv) {
     image_transport::Publisher pub = it.advertise("/image_converter/output_video", 1);
     namedWindow(OPENCV_WINDOW);
 
-    ros::spinOnce();
-    /*while(true){
+    //ros::spinOnce();
+    while(true){
         ros::spinOnce();
         pub.publish(cv_ptr->toImageMsg());
-    }*/
+        //break
+    }
     return 0;
 }
 

@@ -8,13 +8,19 @@
 #include <cv_bridge/cv_bridge.h>
 
 using namespace cv;
+using namespace std;
 
 static const std::string OPENCV_WINDOW = "Image window";
-cv_bridge::CvImagePtr cv_ptr;
-
+Mat imgHSV, imgMask, imgEdges, imgHoughLines;
+int hmin = 0, smin = 0, vmin = 255;
+int hmax = 0, smax = 0, vmax = 255;
 
 void image_cb(const sensor_msgs::ImageConstPtr& msg)
 {
+    cv_bridge::CvImagePtr cv_ptr;
+    ros::NodeHandle imageProc;
+    image_transport::ImageTransport it2(imageProc);
+    image_transport::Publisher pub = it2.advertise("/image_converter/output_video", 1);
     try
     {
         cv_ptr = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::BGR8);
@@ -22,33 +28,55 @@ void image_cb(const sensor_msgs::ImageConstPtr& msg)
     catch (cv_bridge::Exception& e)
     {
         ROS_ERROR("cv_bridge exception: %s", e.what());
+        //ROS_INFO("---FAILED---");
         return;
     }
 
-    // Draw circle of radius 10 at coordinates (0, 0)
-    //cv::circle(cv_ptr->image, cv::Point(0, 0), 10, CV_RGB(255,0,0));
 
-    // Pixel coordinates on image from which it will be warped
-    float w = 104, h = 233;
-    Point2f src_l[4] = {{246, 252},{268, 265},{16, 292},{105, 346}};
-    Point2f src_r[4] = {{391,265},{427,259},{540,355},{622,300}};
-    Point2f dst[4] = {{0.0f, 0.0f},{w, 0.0f},{0.0f, h},{w, h}};
+    cvtColor(cv_ptr->image, imgHSV, COLOR_BGR2HSV); // Converts image to HSV
 
-    // Warp image so left adn right lines can be tracked more easily
-    Mat matrix_l, matrix_r, imgWarp_l, imgWarp_r;
-    matrix_l = getPerspectiveTransform(src_l, dst);
-    matrix_r = getPerspectiveTransform(src_r, dst);
-    warpPerspective(cv_ptr->image, imgWarp_l, matrix_l, Point(w,h));
-    warpPerspective(cv_ptr->image, imgWarp_r, matrix_r, Point(w,h));
+    /*namedWindow("Trackbars",(640,200));
+    createTrackbar("Hue Min","Trackbars",&hmin,179);
+    createTrackbar("Hue Max","Trackbars",&hmax,179);
+    createTrackbar("Sat Min","Trackbars",&smin,255);
+    createTrackbar("Sat Max","Trackbars",&smax,255);
+    createTrackbar("Val Min","Trackbars",&vmin,255);
+    createTrackbar("Val Max","Trackbars",&vmax,255);*/
+
+    Scalar lower (hmin,smin,vmin);
+    Scalar upper (hmax,smax,vmax);
+    inRange(imgHSV,lower,upper,imgMask);    // Applies mask
+
+    Canny(imgMask,imgEdges,50,200,3);   // Edge detection
+
+    vector<Vec2f> lines;    // Holds results of HoughLines
+    HoughLines(imgEdges, lines, 1, CV_PI/180, 150, 0, 0);   // HoughLines detector
+
+    // Draw lines
+    for( size_t i = 0; i < lines.size(); i++ )
+    {
+        float rho = lines[i][0], theta = lines[i][1];
+        Point pt1, pt2;
+        double a = cos(theta), b = sin(theta);
+        double x0 = a*rho, y0 = b*rho;
+        pt1.x = cvRound(x0 + 1000*(-b));
+        pt1.y = cvRound(y0 + 1000*(a));
+        pt2.x = cvRound(x0 - 1000*(-b));
+        pt2.y = cvRound(y0 - 1000*(a));
+        line(imgHoughLines, pt1, pt2, Scalar(0,0,255), 3, LINE_AA);
+    }
 
     // Update GUI Window
     imshow(OPENCV_WINDOW, cv_ptr->image);
-    imshow("img_l", imgWarp_l);
-    imshow("img_r", imgWarp_r);
-
+    //imshow("HSV",imgHSV);
+    //imshow("Mask",imgMask);
+    //imshow("Edges",imgEdges);
+    imshow("Hough Lines",imgHoughLines);
     waitKey(3);
 
-    //imwrite("/impacs/jow102/catkin_ws/src/jow102_mmp/test_img.jpg", cv_ptr->image); //save test image
+    pub.publish(cv_ptr->toImageMsg());
+    //imwrite("/impacs/jow102/catkin_ws/src/jow102_mmp/test_img.jpg", cv_ptr->image);
+    //imwrite("/impacs/jow102/catkin_ws/src/jow102_mmp/test_img_hsv.jpg", imgHSV); //save hsv test image
 }
 
 int main(int argc, char **argv) {
@@ -61,14 +89,13 @@ int main(int argc, char **argv) {
     // Subscribe to input image topic using image transport.
     image_transport::ImageTransport it(nh);
     image_transport::Subscriber sub = it.subscribe("/camera/rgb/image_raw", 1, image_cb);
-    image_transport::Publisher pub = it.advertise("/image_converter/output_video", 1);
+    //image_transport::Publisher pub = it.advertise("/image_converter/output_video", 1);
     namedWindow(OPENCV_WINDOW);
 
     //ros::spinOnce();
     while(true){
         ros::spinOnce();
-        pub.publish(cv_ptr->toImageMsg());
-        //break
+        //break;
     }
     return 0;
 }

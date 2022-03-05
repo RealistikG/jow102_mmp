@@ -18,9 +18,9 @@ int hmax = 0, smax = 0, vmax = 255;
 void image_cb(const sensor_msgs::ImageConstPtr& msg)
 {
     cv_bridge::CvImagePtr cv_ptr;
-    ros::NodeHandle imageProc;
-    image_transport::ImageTransport it2(imageProc);
-    image_transport::Publisher pub = it2.advertise("/image_converter/output_video", 1);
+    //ros::NodeHandle imageProc;
+    //image_transport::ImageTransport it2(imageProc);
+    //image_transport::Publisher pub = it2.advertise("/image_converter/output_video", 1);
     try
     {
         cv_ptr = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::BGR8);
@@ -28,7 +28,6 @@ void image_cb(const sensor_msgs::ImageConstPtr& msg)
     catch (cv_bridge::Exception& e)
     {
         ROS_ERROR("cv_bridge exception: %s", e.what());
-        //ROS_INFO("---FAILED---");
         return;
     }
 
@@ -47,34 +46,27 @@ void image_cb(const sensor_msgs::ImageConstPtr& msg)
     Scalar upper (hmax,smax,vmax);
     inRange(imgHSV,lower,upper,imgMask);    // Applies mask
 
-    Canny(imgMask,imgEdges,50,200,3);   // Edge detection
+    Canny(imgMask,imgEdges,200,255);   // Edge detection
 
-    vector<Vec2f> lines;    // Holds results of HoughLines
-    HoughLines(imgEdges, lines, 1, CV_PI/180, 150, 0, 0);   // HoughLines detector
-
+    // Probabilistic Line Transform
+    vector<Vec4i> linesP; // Hold results of detection
+    HoughLinesP(imgEdges, linesP, 1, CV_PI/180, 50, 50, 10 ); // Detection
     // Draw lines
-    for( size_t i = 0; i < lines.size(); i++ )
+    for( size_t i = 0; i < linesP.size(); i++ )
     {
-        float rho = lines[i][0], theta = lines[i][1];
-        Point pt1, pt2;
-        double a = cos(theta), b = sin(theta);
-        double x0 = a*rho, y0 = b*rho;
-        pt1.x = cvRound(x0 + 1000*(-b));
-        pt1.y = cvRound(y0 + 1000*(a));
-        pt2.x = cvRound(x0 - 1000*(-b));
-        pt2.y = cvRound(y0 - 1000*(a));
-        line(imgHoughLines, pt1, pt2, Scalar(0,0,255), 3, LINE_AA);
+        Vec4i l = linesP[i];
+        line(imgEdges, Point(l[0], l[1]), Point(l[2], l[3]), Scalar(0,0,255), 3, LINE_AA);
     }
 
     // Update GUI Window
     imshow(OPENCV_WINDOW, cv_ptr->image);
     //imshow("HSV",imgHSV);
     //imshow("Mask",imgMask);
-    //imshow("Edges",imgEdges);
-    imshow("Hough Lines",imgHoughLines);
-    waitKey(3);
+    imshow("Edges",imgEdges);
+    //imshow("Hough Lines",imgHoughLines);
+    waitKey(25);
 
-    pub.publish(cv_ptr->toImageMsg());
+    //pub.publish(cv_ptr->toImageMsg());
     //imwrite("/impacs/jow102/catkin_ws/src/jow102_mmp/test_img.jpg", cv_ptr->image);
     //imwrite("/impacs/jow102/catkin_ws/src/jow102_mmp/test_img_hsv.jpg", imgHSV); //save hsv test image
 }

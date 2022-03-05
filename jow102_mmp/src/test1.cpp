@@ -99,8 +99,8 @@ void image_cb(const sensor_msgs::ImageConstPtr& msg)
     }
 
     // draw circles of radius 10 around the xy point
-    cv::circle(imgHoughLinesP, cv::Point(rX, rY), 10, CV_RGB(255,0,0));
-    cv::circle(imgHoughLinesP, cv::Point(lX, lY), 10, CV_RGB(255,0,0));
+    circle(imgHoughLinesP, cv::Point(rX, rY), 10, CV_RGB(255,0,0));
+    circle(imgHoughLinesP, cv::Point(lX, lY), 10, CV_RGB(255,0,0));
 
     // Update GUI Windows
     imshow(OPENCV_WINDOW, cv_ptr->image);

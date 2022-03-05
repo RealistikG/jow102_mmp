@@ -11,10 +11,14 @@ using namespace cv;
 using namespace std;
 
 static const std::string OPENCV_WINDOW = "Image window";
-Mat imgGBlur, imgHSV, imgMask, imgEdges, imgHoughLines;
+Mat imgCrop, imgGBlur, imgHSV, imgMask, imgEdges, imgHoughLinesP;
+// Hue, Sat, Value min & max values for colour mask
 int hmin = 0, smin = 0, vmin = 255;
 int hmax = 0, smax = 0, vmax = 255;
-int hThreshold = 75, hMinLineL = 50, hMaxLineG = 50;
+// Canny edge detection values
+int cLowThreshold = 100, cHighThreshold = 255;
+// HoughLinesP values
+int hThreshold = 25, hMinLineL = 15, hMaxLineG = 90;
 
 void image_cb(const sensor_msgs::ImageConstPtr& msg)
 {
@@ -32,10 +36,15 @@ void image_cb(const sensor_msgs::ImageConstPtr& msg)
         return;
     }
 
+    // Crop image
+    Rect roi(0,257,640,223);
+    imgCrop = cv_ptr->image(roi);
+
     // Apply Gaussian blur to image to help edge detection
-    GaussianBlur(cv_ptr->image, imgGBlur, Size(3,3), 0);
+    //GaussianBlur(imgCrop, imgGBlur, Size(3,3), 0);
+
     // Convert image to HSV
-    cvtColor(imgGBlur, imgHSV, COLOR_BGR2HSV);
+    cvtColor(imgCrop, imgHSV, COLOR_BGR2HSV);
 
     // Trackbars to adjust values for colour mask
     /*namedWindow("Trackbars",(640,200));
@@ -46,11 +55,16 @@ void image_cb(const sensor_msgs::ImageConstPtr& msg)
     createTrackbar("Val Min","Trackbars",&vmin,255);
     createTrackbar("Val Max","Trackbars",&vmax,255);*/
 
-    // Trackbars to adjust values for HoughLinesP
+    // Trackbars to adjust values for Canny edge detector
     /*namedWindow("Trackbars2",(640,200));
-    createTrackbar("Threshold","Trackbars2",&hThreshold,100);
-    createTrackbar("Min Line Length","Trackbars2",&hMinLineL,100);
-    createTrackbar("Min Line Gap","Trackbars2",&hMaxLineG,100);*/
+    createTrackbar("Low Threshold","Trackbars2",&cLowThreshold,100);
+    if (cLowThreshold*3>255) cHighThreshold = 255;*/
+
+    // Trackbars to adjust values for HoughLinesP
+    /*namedWindow("Trackbars3",(640,200));
+    createTrackbar("Threshold","Trackbars3",&hThreshold,100);
+    createTrackbar("Min Line Length","Trackbars3",&hMinLineL,100);
+    createTrackbar("Max Line Gap","Trackbars3",&hMaxLineG,100);*/
 
     // Apply colour mask
     Scalar lower (hmin,smin,vmin);
@@ -58,25 +72,42 @@ void image_cb(const sensor_msgs::ImageConstPtr& msg)
     inRange(imgHSV,lower,upper,imgMask);
 
     // Apply Canny edge detection
-    Canny(imgMask,imgEdges,200,255);
-    imgHoughLines = cv_ptr->image.clone();
+    Canny(imgMask,imgEdges,cLowThreshold,cHighThreshold,3);
+    //imgHoughLinesP = cv_ptr->image.clone();
+    imgHoughLinesP = imgCrop.clone();
 
     // Probabilistic Line Transform ***Code derived from docs.opencv.org tutorial***
     vector<Vec4i> linesP; // Hold results of detection
     HoughLinesP(imgEdges, linesP, 1, CV_PI/180, hThreshold, hMinLineL, hMaxLineG); // Detection
+    int rX=-1, rY=-1, lX=-1, lY=-1;
     // Draw lines
     for( size_t i = 0; i < linesP.size(); i++ )
     {
         Vec4i l = linesP[i];
-        line(imgHoughLines, Point(l[0], l[1]), Point(l[2], l[3]), Scalar(0,0,255), 3, LINE_AA);
+        line(imgHoughLinesP, Point(l[0], l[1]), Point(l[2], l[3]), Scalar(0,0,255), 3, LINE_AA);
+        // Point(xStart, yStart), Point(xEnd, yEnd)
+        if (l[0] < 320 && l[1]>rY) {
+            rX=l[0];
+            rY=l[1];
+        } else if (l[0] > 320 && l[1]>lY){
+            lX=l[0];
+            lY=l[1];
+        }
+        // Rline -> if xStartR < 320 && yStartR > prevYStartR;
+        // Lline -> if xEndL > 320 && yEndL > prevYEndL;
+        // Draws down -> up on R; up -> down on L;
     }
+
+    // draw circles of radius 10 around the xy point
+    cv::circle(imgHoughLinesP, cv::Point(rX, rY), 10, CV_RGB(255,0,0));
+    cv::circle(imgHoughLinesP, cv::Point(lX, lY), 10, CV_RGB(255,0,0));
 
     // Update GUI Windows
     imshow(OPENCV_WINDOW, cv_ptr->image);
     //imshow("HSV",imgHSV);
     //imshow("Mask",imgMask);
     imshow("Edges",imgEdges);
-    imshow("Hough Lines",imgHoughLines);
+    imshow("HoughLinesP",imgHoughLinesP);
     waitKey(25);
 
     //pub.publish(cv_ptr->toImageMsg());

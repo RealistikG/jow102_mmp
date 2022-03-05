@@ -61,7 +61,7 @@ void image_cb(const sensor_msgs::ImageConstPtr& msg)
     Canny(imgMask,imgEdges,200,255);
     imgHoughLines = cv_ptr->image.clone();
 
-    // Probabilistic Line Transform
+    // Probabilistic Line Transform ***Code derived from docs.opencv.org tutorial***
     vector<Vec4i> linesP; // Hold results of detection
     HoughLinesP(imgEdges, linesP, 1, CV_PI/180, hThreshold, hMinLineL, hMaxLineG); // Detection
     // Draw lines

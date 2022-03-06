@@ -87,24 +87,24 @@ void image_cb(const sensor_msgs::ImageConstPtr& msg)
         line(imgHoughLinesP, Point(l[0], l[1]), Point(l[2], l[3]), Scalar(0,0,255), 3, LINE_AA);
         // Point(xStart, yStart), Point(xEnd, yEnd)
         if (l[1]>l[3]) {
-            if (l[0] > 320 && l[1]>yStartR) {
+            if (l[0] > 320 && l[3]<yEndR) {
                 xStartR=l[0];
                 yStartR=l[1];
                 xEndR=l[2];
                 yEndR=l[3];
-            } else if (l[0] < 320 && l[1]>yStartL){
+            } else if (l[0] < 320 && l[3]<yEndL){
                 xStartL=l[0];
                 yStartL=l[1];
                 xEndL=l[2];
                 yEndL=l[3];
             }
         }else{
-            if (l[2] > 320 && l[3]>yEndR) {
+            if (l[2] > 320 && l[1]<yStartL) {
                 xStartR=l[2];
                 yStartR=l[3];
                 xEndR=l[0];
                 yEndR=l[1];
-            } else if (l[2] < 320 && l[3]>yEndL){
+            } else if (l[2] < 320 && l[1]<yStartL){
                 xStartL=l[2];
                 yStartL=l[3];
                 xEndL=l[0];

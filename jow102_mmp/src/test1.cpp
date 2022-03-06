@@ -144,7 +144,7 @@ void image_cb(const sensor_msgs::ImageConstPtr& msg)
         }*/
 
         // *** OPTION 3 ***
-        if(l[1]>l[3]){
+        /*if(l[1]>l[3]){
             if(l[0]<320 && l[1]>yStartL){
                 xStartL=l[0];
                 yStartL=l[1];
@@ -173,6 +173,25 @@ void image_cb(const sensor_msgs::ImageConstPtr& msg)
             } else if(l[0]>xEndL && l[1]<yEndR){
                 xEndR=l[0];
                 xEndL=l[1];
+            }
+        }*/
+
+        // *** OPTION 4 ***
+        if(l[1]>l[3]){
+            if(l[0]<320 && l[1]>yStartL){
+                xStartL=l[0];
+                yStartL=l[1];
+            } else if(l[0]>320 && l[1]>yStartR){ //l[3]<yEndR
+                xStartL=l[0];
+                yStartL=l[1];
+            }
+        }else{
+            if(l[2]<320 && l[3]>yStartL){ //l[1]<yEndL
+                xStartL=l[2];
+                yStartL=l[3];
+            } else if(l[2]>320 && l[3]>yStartR){ //l[1]<yEndR
+                xStartL=l[2];
+                yStartL=l[3];
             }
         }
 

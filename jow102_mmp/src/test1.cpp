@@ -86,6 +86,8 @@ void image_cb(const sensor_msgs::ImageConstPtr& msg)
         Vec4i l = linesP[i];
         line(imgHoughLinesP, Point(l[0], l[1]), Point(l[2], l[3]), Scalar(0,0,255), 3, LINE_AA);
         // Point(xStart, yStart), Point(xEnd, yEnd)
+
+        // *** THIS IS A FUCKING MIND MELT SORT IT OUT ***
         if (l[1]>l[3]) {
             if (l[0] > 320 && l[3]<yEndR) {
                 xStartR=l[0];

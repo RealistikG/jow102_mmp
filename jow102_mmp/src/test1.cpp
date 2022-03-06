@@ -86,21 +86,37 @@ void image_cb(const sensor_msgs::ImageConstPtr& msg)
         Vec4i l = linesP[i];
         line(imgHoughLinesP, Point(l[0], l[1]), Point(l[2], l[3]), Scalar(0,0,255), 3, LINE_AA);
         // Point(xStart, yStart), Point(xEnd, yEnd)
-        if (l[0] < 320 && l[1]>rY) {
-            rX=l[0];
-            rY=l[1];
-        } else if (l[0] > 320 && l[1]>lY){
-            lX=l[0];
-            lY=l[1];
+        if (l[1]>l[3]) {
+            if (l[0] > 320 && l[1]>rY) {
+                rX=l[0];
+                rY=l[1];
+            }
+            if (l[0] < 320 && l[1]>lY){
+                lX=l[0];
+                lY=l[1];
+            }
+        }else{
+            if (l[2] > 320 && l[3]>rY) {
+                rX=l[2];
+                rY=l[3];
+            }
+            if (l[2] < 320 && l[3]>lY){
+                lX=l[2];
+                lY=l[3];
+            }
         }
+
+
         // Rline -> if xStartR < 320 && yStartR > prevYStartR;
         // Lline -> if xEndL > 320 && yEndL > prevYEndL;
-        // Draws down -> up on R; up -> down on L;
+        // Draws down -> up on L; up -> down on R;
     }
 
     // draw circles of radius 10 around the xy point
-    circle(imgHoughLinesP, cv::Point(rX, rY), 10, CV_RGB(255,0,0));
-    circle(imgHoughLinesP, cv::Point(lX, lY), 10, CV_RGB(255,0,0));
+    circle(imgHoughLinesP, cv::Point(rX, rY), 10, CV_RGB(0,0,255));
+    circle(imgHoughLinesP, cv::Point(lX, lY), 10, CV_RGB(0,0,255));
+    int cX = (rX+lX)/2, cY = (rY+lY)/2;
+    circle(imgHoughLinesP, cv::Point(cX, cY), 10, CV_RGB(0,255,0));
 
     // Update GUI Windows
     imshow(OPENCV_WINDOW, cv_ptr->image);

@@ -79,7 +79,7 @@ void image_cb(const sensor_msgs::ImageConstPtr& msg)
     // Probabilistic Line Transform ***Code derived from docs.opencv.org tutorial***
     vector<Vec4i> linesP; // Hold results of detection
     HoughLinesP(imgEdges, linesP, 1, CV_PI/180, hThreshold, hMinLineL, hMaxLineG); // Detection
-    int rX=-1, rY=-1, lX=-1, lY=-1;
+    int xStartR=-1, xEndR=-1, yStartR=-1, yEndR=-1, xStartL=-1, xEndL=-1, yStartL=-1, yEndL=-1;
     // Draw lines
     for( size_t i = 0; i < linesP.size(); i++ )
     {
@@ -87,42 +87,62 @@ void image_cb(const sensor_msgs::ImageConstPtr& msg)
         line(imgHoughLinesP, Point(l[0], l[1]), Point(l[2], l[3]), Scalar(0,0,255), 3, LINE_AA);
         // Point(xStart, yStart), Point(xEnd, yEnd)
         if (l[1]>l[3]) {
-            if (l[0] > 320 && l[1]>rY) {
-                rX=l[0];
-                rY=l[1];
-            }
-            if (l[0] < 320 && l[1]>lY){
-                lX=l[0];
-                lY=l[1];
+            if (l[0] > 320 && l[1]>yStartR) {
+                xStartR=l[0];
+                yStartR=l[1];
+                xEndR=l[2];
+                yEndR=l[3];
+            } else if (l[0] < 320 && l[1]>yStartL){
+                xStartL=l[0];
+                yStartL=l[1];
+                xEndL=l[2];
+                yEndL=l[3];
             }
         }else{
-            if (l[2] > 320 && l[3]>rY) {
-                rX=l[2];
-                rY=l[3];
-            }
-            if (l[2] < 320 && l[3]>lY){
-                lX=l[2];
-                lY=l[3];
+            if (l[2] > 320 && l[3]>yEndR) {
+                xStartR=l[2];
+                yStartR=l[3];
+                xEndR=l[0];
+                yEndR=l[1];
+            } else if (l[2] < 320 && l[3]>yEndL){
+                xStartL=l[2];
+                yStartL=l[3];
+                xEndL=l[0];
+                yEndL=l[1];
             }
         }
-
-
         // Rline -> if xStartR < 320 && yStartR > prevYStartR;
         // Lline -> if xEndL > 320 && yEndL > prevYEndL;
         // Draws down -> up on L; up -> down on R;
     }
 
     // draw circles of radius 10 around the xy point
-    circle(imgHoughLinesP, cv::Point(rX, rY), 10, CV_RGB(0,0,255));
-    circle(imgHoughLinesP, cv::Point(lX, lY), 10, CV_RGB(0,0,255));
-    int cX = (rX+lX)/2, cY = (rY+lY)/2;
-    circle(imgHoughLinesP, cv::Point(cX, cY), 10, CV_RGB(0,255,0));
+    bool lBool = false, rBool = false;
+    if(xStartL != -1 && yStartL != -1){
+        circle(imgHoughLinesP, Point(xStartL, yStartL), 10, CV_RGB(0,0,255));
+        circle(imgHoughLinesP, Point(xEndL, yEndL), 10, CV_RGB(0,0,255));
+        lBool = true;
+    }
+    if(xStartR!=-1 && yStartR!=-1){
+        circle(imgHoughLinesP, Point(xStartR, yStartR), 10, CV_RGB(0,0,255));
+        circle(imgHoughLinesP, Point(xEndR, yEndR), 10, CV_RGB(0,0,255));
+        rBool = true;
+    }
+    int xStartC=-1, yStartC=-1, xEndC=-1, yEndC=-1;
+    if(lBool && rBool){
+        xStartC=(xStartR+xStartL)/2;
+        yStartC=(yStartR+yStartL)/2;
+        xEndC=(xEndR+xEndL)/2;
+        yEndC=(yEndR+yEndL)/2;
+        circle(imgHoughLinesP, Point(xStartC, yStartC), 10, CV_RGB(0,255,0));
+        circle(imgHoughLinesP, Point(xEndC, yEndC), 10, CV_RGB(0,255,0));
+    }
 
     // Update GUI Windows
     imshow(OPENCV_WINDOW, cv_ptr->image);
     //imshow("HSV",imgHSV);
     //imshow("Mask",imgMask);
-    imshow("Edges",imgEdges);
+    //imshow("Edges",imgEdges);
     imshow("HoughLinesP",imgHoughLinesP);
     waitKey(25);
 

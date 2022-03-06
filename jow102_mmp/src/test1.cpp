@@ -79,7 +79,7 @@ void image_cb(const sensor_msgs::ImageConstPtr& msg)
     // Probabilistic Line Transform ***Code derived from docs.opencv.org tutorial***
     vector<Vec4i> linesP; // Hold results of detection
     HoughLinesP(imgEdges, linesP, 1, CV_PI/180, hThreshold, hMinLineL, hMaxLineG); // Detection
-    int xStartR=-1, xEndR=-1, yStartR=-1, yEndR=-1, xStartL=-1, xEndL=-1, yStartL=-1, yEndL=-1;
+    int xStartR=-1, xEndR=-1, yStartR=-1, yEndR=1000, xStartL=-1, xEndL=-1, yStartL=-1, yEndL=1000;
     // Draw lines
     for( size_t i = 0; i < linesP.size(); i++ )
     {
@@ -88,31 +88,61 @@ void image_cb(const sensor_msgs::ImageConstPtr& msg)
         // Point(xStart, yStart), Point(xEnd, yEnd)
 
         // *** THIS IS A FUCKING MIND MELT SORT IT OUT ***
-        if (l[1]>l[3]) {
-            if (l[0] > 320 && l[3]<yEndR) {
+
+        // *** OPTION 1 ***
+        /*if (l[1]>l[3]) {
+            if (l[0] > 320 && l[1]>yStartR) {
                 xStartR=l[0];
                 yStartR=l[1];
                 xEndR=l[2];
                 yEndR=l[3];
-            } else if (l[0] < 320 && l[3]<yEndL){
+            } else if (l[0] < 320 && l[1]>yStartL){
                 xStartL=l[0];
                 yStartL=l[1];
                 xEndL=l[2];
                 yEndL=l[3];
             }
         }else{
-            if (l[2] > 320 && l[1]<yStartL) {
+            if (l[2] > 320 && l[3]>yEndL) {
                 xStartR=l[2];
                 yStartR=l[3];
                 xEndR=l[0];
                 yEndR=l[1];
-            } else if (l[2] < 320 && l[1]<yStartL){
+            } else if (l[2] < 320 && l[3]>yEndL){
                 xStartL=l[2];
                 yStartL=l[3];
                 xEndL=l[0];
                 yEndL=l[1];
             }
+        }*/
+
+        // *** OPTION 2 ***
+        if(l[1]>l[3]){
+            if(l[0]<320 && l[1]>yStartL && l[3]<yEndL){
+                xStartL=l[0];
+                yStartL=l[1];
+                xEndL=l[2];
+                yEndL=l[3];
+            } else if(l[0]>320 && l[1]>yStartR && l[3]<yEndR){
+                xStartL=l[0];
+                yStartL=l[1];
+                xEndL=l[2];
+                yEndL=l[3];
+            }
+        }else{
+            if(l[2]<320 && l[3]>yStartL && l[1]<yEndL){
+                xStartL=l[0];
+                yStartL=l[1];
+                xEndL=l[2];
+                yEndL=l[3];
+            } else if(l[2]>320 && l[3]>yStartR && l[1]<yEndR){
+                xStartL=l[0];
+                yStartL=l[1];
+                xEndL=l[2];
+                yEndL=l[3];
+            }
         }
+
         // Rline -> if xStartR < 320 && yStartR > prevYStartR;
         // Lline -> if xEndL > 320 && yEndL > prevYEndL;
         // Draws down -> up on L; up -> down on R;

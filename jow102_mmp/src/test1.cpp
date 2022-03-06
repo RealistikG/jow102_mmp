@@ -157,7 +157,7 @@ void image_cb(const sensor_msgs::ImageConstPtr& msg)
                 yEndL=l[3];
             } else if(l[2]>xEndL && l[3]<yEndR){
                 xEndR=l[2];
-                xEndR=l[3];
+                yEndR=l[3];
             }
         }else{
             if(l[2]<320 && l[3]>yStartL){ //l[1]<yEndL
@@ -172,7 +172,7 @@ void image_cb(const sensor_msgs::ImageConstPtr& msg)
                 yEndL=l[1];
             } else if(l[0]>xEndL && l[1]<yEndR){
                 xEndR=l[0];
-                xEndR=l[1];
+                yEndR=l[1];
             }
         }
 

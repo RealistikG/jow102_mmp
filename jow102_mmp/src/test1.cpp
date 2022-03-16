@@ -1,5 +1,6 @@
 // include ros lib
 #include <ros/ros.h>
+#include <geometry_msgs/Twist.h>
 
 // include opencv2 lib
 #include <opencv2/imgproc/imgproc.hpp>
@@ -9,6 +10,7 @@
 
 using namespace cv;
 using namespace std;
+using namespace ros;
 
 static const std::string OPENCV_WINDOW = "Image window";
 Mat imgCrop, imgGBlur, imgHSV, imgMask, imgEdges, imgHoughLinesP;
@@ -18,7 +20,9 @@ int hmax = 0, smax = 0, vmax = 255;
 // Canny edge detection values
 int cLowThreshold = 50, cHighThreshold = 150;
 // HoughLinesP values
-int hThreshold = 30, hMinLineL = 10, hMaxLineG = 90;
+int hThreshold = 15, hMinLineL = 10, hMaxLineG = 90;
+
+int xTrack, yTrack;
 
 void image_cb(const sensor_msgs::ImageConstPtr& msg)
 {
@@ -147,13 +151,17 @@ void image_cb(const sensor_msgs::ImageConstPtr& msg)
         yEndC=(yEndR+yEndL)/2;
         circle(imgHoughLinesP, Point(xStartC, yStartC), 10, CV_RGB(0,255,0));
         circle(imgHoughLinesP, Point(xEndC, yEndC), 10, CV_RGB(0,255,0));
+        line(imgHoughLinesP, Point(xStartC, yStartC), Point(xEndC, yEndC), Scalar(0,255,0), 3, LINE_AA);
+
+        xTrack=(xStartC+xEndC)/2;
+        yTrack=(yStartC+yEndC)/2;
     }
 
     // Update GUI Windows
     imshow(OPENCV_WINDOW, cv_ptr->image);
     //imshow("HSV",imgHSV);
-    imshow("Mask",imgMask);
-    imshow("Edges",imgEdges);
+    //imshow("Mask",imgMask);
+    //imshow("Edges",imgEdges);
     imshow("HoughLinesP",imgHoughLinesP);
     waitKey(25);
 
@@ -162,12 +170,27 @@ void image_cb(const sensor_msgs::ImageConstPtr& msg)
     //imwrite("/impacs/jow102/catkin_ws/src/jow102_mmp/test_img_hsv.jpg", imgHSV); //save hsv test image
 }
 
+void drive(){
+    NodeHandle driveNh;
+    Publisher pub = driveNh.advertise<geometry_msgs::Twist>("cmd_vel", 10);
+    geometry_msgs::Twist values;
+
+    values.linear.x = 0.3;
+    if (xTrack>320){
+        values.angular.z = -0.3;
+    } else if (xTrack<320){
+        values.angular.z = 0.3;
+    } else values.angular.z = 0;
+
+    pub.publish(values);
+}
+
 int main(int argc, char **argv) {
     // Initialize the ROS system.
-    ros::init(argc, argv, "test");
+    init(argc, argv, "test");
 
     // Establish this program as a ROS node.
-    ros::NodeHandle nh;
+    NodeHandle nh;
 
     // Subscribe to input image topic using image transport.
     image_transport::ImageTransport it(nh);
@@ -177,7 +200,8 @@ int main(int argc, char **argv) {
 
     //ros::spinOnce();
     while(true){
-        ros::spinOnce();
+        spinOnce();
+        drive();
         //break;
     }
     return 0;

@@ -7,6 +7,8 @@
 #include <image_transport/image_transport.h>
 #include <cv_bridge/cv_bridge.h>
 
+// TEST BRANCH
+
 using namespace cv;
 using namespace std;
 
@@ -16,9 +18,9 @@ Mat imgCrop, imgGBlur, imgHSV, imgMask, imgEdges, imgHoughLinesP;
 int hmin = 0, smin = 0, vmin = 255;
 int hmax = 0, smax = 0, vmax = 255;
 // Canny edge detection values
-int cLowThreshold = 100, cHighThreshold = 255;
+int cLowThreshold = 50, cHighThreshold = 150;
 // HoughLinesP values
-int hThreshold = 25, hMinLineL = 15, hMaxLineG = 90;
+int hThreshold = 80, hMinLineL = 10, hMaxLineG = 100;
 
 void image_cb(const sensor_msgs::ImageConstPtr& msg)
 {
@@ -58,13 +60,13 @@ void image_cb(const sensor_msgs::ImageConstPtr& msg)
     // Trackbars to adjust values for Canny edge detector
     /*namedWindow("Trackbars2",(640,200));
     createTrackbar("Low Threshold","Trackbars2",&cLowThreshold,100);
-    if (cLowThreshold*3>255) cHighThreshold = 255;*/
+    createTrackbar("High Threshold","Trackbars2",&cHighThreshold,255);*/
 
     // Trackbars to adjust values for HoughLinesP
-    /*namedWindow("Trackbars3",(640,200));
+    namedWindow("Trackbars3",(640,200));
     createTrackbar("Threshold","Trackbars3",&hThreshold,100);
     createTrackbar("Min Line Length","Trackbars3",&hMinLineL,100);
-    createTrackbar("Max Line Gap","Trackbars3",&hMaxLineG,100);*/
+    createTrackbar("Max Line Gap","Trackbars3",&hMaxLineG,100);
 
     // Apply colour mask
     Scalar lower (hmin,smin,vmin);
@@ -72,13 +74,13 @@ void image_cb(const sensor_msgs::ImageConstPtr& msg)
     inRange(imgHSV,lower,upper,imgMask);
 
     // Apply Canny edge detection
-    Canny(imgMask,imgEdges,cLowThreshold,cHighThreshold,3);
+    Canny(imgMask,imgEdges,cLowThreshold,cHighThreshold);
     //imgHoughLinesP = cv_ptr->image.clone();
     imgHoughLinesP = imgCrop.clone();
 
     // Probabilistic Line Transform ***Code derived from docs.opencv.org tutorial***
     vector<Vec4i> linesP; // Hold results of detection
-    HoughLinesP(imgEdges, linesP, 1, CV_PI/180, hThreshold, hMinLineL, hMaxLineG); // Detection
+    HoughLinesP(imgEdges, linesP, 2, CV_PI/180, hThreshold, hMinLineL, hMaxLineG); // Detection
     int xStartR=-1, xEndR=1000, yStartR=-1, yEndR=1000, xStartL=-1, xEndL=-1, yStartL=-1, yEndL=1000;
     // Draw lines
     for( size_t i = 0; i < linesP.size(); i++ )
@@ -86,62 +88,6 @@ void image_cb(const sensor_msgs::ImageConstPtr& msg)
         Vec4i l = linesP[i];
         line(imgHoughLinesP, Point(l[0], l[1]), Point(l[2], l[3]), Scalar(0,0,255), 3, LINE_AA);
         // Point(xStart, yStart), Point(xEnd, yEnd)
-
-        // *** THIS IS A FUCKING MIND MELT SORT IT OUT ***
-
-        // *** OPTION 1 ***
-        /*if (l[1]>l[3]) {
-            if (l[0] > 320 && l[1]>yStartR) {
-                xStartR=l[0];
-                yStartR=l[1];
-                xEndR=l[2];
-                yEndR=l[3];
-            } else if (l[0] < 320 && l[1]>yStartL){
-                xStartL=l[0];
-                yStartL=l[1];
-                xEndL=l[2];
-                yEndL=l[3];
-            }
-        }else{
-            if (l[2] > 320 && l[3]>yEndL) {
-                xStartR=l[2];
-                yStartR=l[3];
-                xEndR=l[0];
-                yEndR=l[1];
-            } else if (l[2] < 320 && l[3]>yEndL){
-                xStartL=l[2];
-                yStartL=l[3];
-                xEndL=l[0];
-                yEndL=l[1];
-            }
-        }*/
-
-        // *** OPTION 2 ***
-        /*if(l[1]>l[3]){
-            if(l[0]<320 && l[1]>yStartL && l[3]<yEndL){
-                xStartL=l[0];
-                yStartL=l[1];
-                xEndL=l[2];
-                yEndL=l[3];
-            } else if(l[0]>320 && l[1]>yStartR && l[3]<yEndR){
-                xStartL=l[0];
-                yStartL=l[1];
-                xEndL=l[2];
-                yEndL=l[3];
-            }
-        }else{
-            if(l[2]<320 && l[3]>yStartL && l[1]<yEndL){
-                xStartL=l[2];
-                yStartL=l[3];
-                xEndL=l[0];
-                yEndL=l[1];
-            } else if(l[2]>320 && l[3]>yStartR && l[1]<yEndR){
-                xStartL=l[2];
-                yStartL=l[3];
-                xEndL=l[0];
-                yEndL=l[1];
-            }
-        }*/
 
         // *** OPTION 3 ***
         if(l[1]>l[3]){
@@ -176,25 +122,6 @@ void image_cb(const sensor_msgs::ImageConstPtr& msg)
             }
         }
 
-        // *** OPTION 4 ***
-        /*if(l[1]>l[3]){
-            if(l[0]<320 && l[1]>yStartL){
-                xStartL=l[0];
-                yStartL=l[1];
-            } else if(l[0]>320 && l[1]>yStartR){ //l[3]<yEndR
-                xStartR=l[0];
-                yStartR=l[1];
-            }
-        }else{
-            if(l[2]<320 && l[3]>yStartL){ //l[1]<yEndL
-                xStartL=l[2];
-                yStartL=l[3];
-            } else if(l[2]>320 && l[3]>yStartR){ //l[1]<yEndR
-                xStartR=l[2];
-                yStartR=l[3];
-            }
-        }*/
-
         // Rline -> if xStartR < 320 && yStartR > prevYStartR;
         // Lline -> if xEndL > 320 && yEndL > prevYEndL;
         // Draws down -> up on L; up -> down on R;
@@ -228,11 +155,14 @@ void image_cb(const sensor_msgs::ImageConstPtr& msg)
     //imshow("Mask",imgMask);
     //imshow("Edges",imgEdges);
     imshow("HoughLinesP",imgHoughLinesP);
-    waitKey(25);
+    waitKey(1);
 
     //pub.publish(cv_ptr->toImageMsg());
     //imwrite("/impacs/jow102/catkin_ws/src/jow102_mmp/test_img.jpg", cv_ptr->image);
     //imwrite("/impacs/jow102/catkin_ws/src/jow102_mmp/test_img_hsv.jpg", imgHSV); //save hsv test image
+    //imwrite("/impacs/jow102/catkin_ws/src/jow102_mmp/test_img_mask.jpg", imgMask);
+    //imwrite("/impacs/jow102/catkin_ws/src/jow102_mmp/test_img_edges.jpg", imgEdges);
+    //imwrite("/impacs/jow102/catkin_ws/src/jow102_mmp/test_img_lines.jpg", imgHoughLinesP);
 }
 
 int main(int argc, char **argv) {

@@ -7,7 +7,7 @@
 #include <image_transport/image_transport.h>
 #include <cv_bridge/cv_bridge.h>
 
-// TEST BRANCH 2
+// TEST BRANCH
 
 using namespace cv;
 using namespace std;
@@ -152,8 +152,8 @@ void image_cb(const sensor_msgs::ImageConstPtr& msg)
     // Update GUI Windows
     imshow(OPENCV_WINDOW, cv_ptr->image);
     //imshow("HSV",imgHSV);
-    //imshow("Mask",imgMask);
-    //imshow("Edges",imgEdges);
+    imshow("Mask",imgMask);
+    imshow("Edges",imgEdges);
     imshow("HoughLinesP",imgHoughLinesP);
     waitKey(1);
 

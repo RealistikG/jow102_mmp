@@ -175,11 +175,11 @@ void drive(){
     Publisher pub = driveNh.advertise<geometry_msgs::Twist>("cmd_vel", 10);
     geometry_msgs::Twist values;
 
-    values.linear.x = 0.3;
+    values.linear.x = 0.5;
     if (xTrack>320){
-        values.angular.z = -0.3;
+        values.angular.z = -0.5;
     } else if (xTrack<320){
-        values.angular.z = 0.3;
+        values.angular.z = 0.5;
     } else values.angular.z = 0;
 
     pub.publish(values);
@@ -190,10 +190,10 @@ int main(int argc, char **argv) {
     init(argc, argv, "test");
 
     // Establish this program as a ROS node.
-    NodeHandle nh;
+    NodeHandle mainNh;
 
     // Subscribe to input image topic using image transport.
-    image_transport::ImageTransport it(nh);
+    image_transport::ImageTransport it(mainNh);
     image_transport::Subscriber sub = it.subscribe("/camera/rgb/image_raw", 1, image_cb);
     //image_transport::Publisher pub = it.advertise("/image_converter/output_video", 1);
     namedWindow(OPENCV_WINDOW);

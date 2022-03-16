@@ -16,9 +16,9 @@ Mat imgCrop, imgGBlur, imgHSV, imgMask, imgEdges, imgHoughLinesP;
 int hmin = 0, smin = 0, vmin = 255;
 int hmax = 0, smax = 0, vmax = 255;
 // Canny edge detection values
-int cLowThreshold = 100, cHighThreshold = 255;
+int cLowThreshold = 50, cHighThreshold = 150;
 // HoughLinesP values
-int hThreshold = 25, hMinLineL = 15, hMaxLineG = 90;
+int hThreshold = 30, hMinLineL = 10, hMaxLineG = 90;
 
 void image_cb(const sensor_msgs::ImageConstPtr& msg)
 {

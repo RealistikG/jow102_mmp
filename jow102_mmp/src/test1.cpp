@@ -44,9 +44,6 @@ void image_cb(const sensor_msgs::ImageConstPtr& msg)
     Rect roi(0,257,640,223);
     imgCrop = cv_ptr->image(roi);
 
-    // Apply Gaussian blur to image to help edge detection
-    //GaussianBlur(imgCrop, imgGBlur, Size(3,3), 0);
-
     // Convert image to HSV
     cvtColor(imgCrop, imgHSV, COLOR_BGR2HSV);
 
@@ -77,7 +74,6 @@ void image_cb(const sensor_msgs::ImageConstPtr& msg)
 
     // Apply Canny edge detection
     Canny(imgMask,imgEdges,cLowThreshold,cHighThreshold,3);
-    //imgHoughLinesP = cv_ptr->image.clone();
     imgHoughLinesP = imgCrop.clone();
 
     // Probabilistic Line Transform ***Code derived from docs.opencv.org tutorial***
@@ -155,6 +151,9 @@ void image_cb(const sensor_msgs::ImageConstPtr& msg)
 
         xTrack=(xStartC+xEndC)/2;
         yTrack=(yStartC+yEndC)/2;
+    } else {
+        xTrack = 320;
+        yTrack = 240;
     }
 
     // Update GUI Windows
@@ -175,11 +174,12 @@ void drive(){
     Publisher pub = driveNh.advertise<geometry_msgs::Twist>("cmd_vel", 10);
     geometry_msgs::Twist values;
 
-    values.linear.x = 0.5;
-    if (xTrack>320){
-        values.angular.z = -0.5;
-    } else if (xTrack<320){
-        values.angular.z = 0.5;
+    int deadzone = 100;
+    values.linear.x = 0.2;
+    if (xTrack>320+deadzone){
+        values.angular.z = -0.2;
+    } else if (xTrack<320-deadzone){
+        values.angular.z = 0.2;
     } else values.angular.z = 0;
 
     pub.publish(values);

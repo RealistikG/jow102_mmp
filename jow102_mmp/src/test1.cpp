@@ -31,6 +31,7 @@ void drive(){
     Publisher pub = driveNh.advertise<geometry_msgs::Twist>("cmd_vel", 10);
     geometry_msgs::Twist values;
 
+    ROS_INFO("DRIVING");
     int deadzone = 100;
     values.linear.x = 0.2;
     if (xTrack>320+deadzone){
@@ -166,7 +167,7 @@ void image_cb(const sensor_msgs::ImageConstPtr& msg)
         yTrack=(yStartC+yEndC)/2;
     } else {
         xTrack = 320;
-        yTrack = 240;
+        yTrack = 0;
     }
 
     // Update GUI Windows
@@ -176,7 +177,6 @@ void image_cb(const sensor_msgs::ImageConstPtr& msg)
     //imshow("Edges",imgEdges);
     imshow("HoughLinesP",imgHoughLinesP);
     waitKey(25);
-    drive();
 }
 
 int main(int argc, char **argv) {
@@ -199,12 +199,12 @@ int main(int argc, char **argv) {
         if (timeNow-lastUpdateTime > 1){
             ROS_INFO("Updating");
             spinOnce();
-            //drive();
+            drive();
             lastUpdateTime = Time::now().toSec();
         }
         // Break loop and end program after x seconds
-        if(timeNow-startTime > 60){
-            ROS_INFO("60s Elapsed: End Program");
+        if(timeNow-startTime > 30){
+            ROS_INFO("Time Elapsed: End Program");
             break;
         }
     }

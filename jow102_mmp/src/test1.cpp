@@ -14,7 +14,7 @@ using namespace ros;
 
 // Image Windows
 static const std::string OPENCV_WINDOW = "Image window";
-Mat imgCrop, imgGBlur, imgHSV, imgMask, imgEdges, imgHoughLinesP;
+Mat img, imgCrop, imgHSV, imgMask, imgEdges, imgHoughLinesP;
 
 // Hue, Sat, Value min & max values for colour mask
 int hmin = 0, smin = 0, vmin = 255;
@@ -25,8 +25,21 @@ int cLowThreshold = 50, cHighThreshold = 150;
 int hThreshold = 15, hMinLineL = 10, hMaxLineG = 90;
 // Point that robot actually tracks
 int xTrack, yTrack;
-// Vector to hold results of HoughLinesP detection
-vector<Vec4i> linesP;
+
+void imageCb(const sensor_msgs::ImageConstPtr& msg)
+{
+    cv_bridge::CvImagePtr cv_ptr;
+    try
+    {
+        cv_ptr = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::BGR8);
+    }
+    catch (cv_bridge::Exception& e)
+    {
+        ROS_ERROR("cv_bridge exception: %s", e.what());
+        return;
+    }
+    img = cv_ptr->image;
+}
 
 void drive(){
     //AsyncSpinner spinner(1);
@@ -48,7 +61,47 @@ void drive(){
     pub.publish(values);
 }
 
-void trackLines(){
+void laneDetection(){
+    // Crop image
+    Rect roi(0,257,640,223);
+    imgCrop = img(roi);
+
+    // Convert image to HSV
+    cvtColor(imgCrop, imgHSV, COLOR_BGR2HSV);
+
+    // Trackbars to adjust values for colour mask
+    /*namedWindow("Trackbars",(640,200));
+    createTrackbar("Hue Min","Trackbars",&hmin,179);
+    createTrackbar("Hue Max","Trackbars",&hmax,179);
+    createTrackbar("Sat Min","Trackbars",&smin,255);
+    createTrackbar("Sat Max","Trackbars",&smax,255);
+    createTrackbar("Val Min","Trackbars",&vmin,255);
+    createTrackbar("Val Max","Trackbars",&vmax,255);*/
+
+    // Trackbars to adjust values for Canny edge detector
+    /*namedWindow("Trackbars2",(640,200));
+    createTrackbar("Low Threshold","Trackbars2",&cLowThreshold,100);
+    if (cLowThreshold*3>255) cHighThreshold = 255;*/
+
+    // Trackbars to adjust values for HoughLinesP
+    /*namedWindow("Trackbars3",(640,200));
+    createTrackbar("Threshold","Trackbars3",&hThreshold,100);
+    createTrackbar("Min Line Length","Trackbars3",&hMinLineL,100);
+    createTrackbar("Max Line Gap","Trackbars3",&hMaxLineG,100);*/
+
+    // Apply colour mask
+    Scalar lower (hmin,smin,vmin);
+    Scalar upper (hmax,smax,vmax);
+    inRange(imgHSV,lower,upper,imgMask);
+
+    // Apply Canny edge detection
+    Canny(imgMask,imgEdges,cLowThreshold,cHighThreshold,3);
+    imgHoughLinesP = imgCrop.clone();
+
+    // Probabilistic Line Transform ***Code derived from docs.opencv.org tutorial***
+    // Vector to hold results of HoughLinesP detection
+    vector<Vec4i> linesP;
+    HoughLinesP(imgEdges, linesP, 1, CV_PI/180, hThreshold, hMinLineL, hMaxLineG); // Detection
     int xStartR=-1, xEndR=1000, yStartR=-1, yEndR=1000, xStartL=-1, xEndL=-1, yStartL=-1, yEndL=1000;
     // Draw lines
     for( size_t i = 0; i < linesP.size(); i++ )
@@ -125,66 +178,12 @@ void trackLines(){
     }
 
     // Update GUI Windows
-    imshow(OPENCV_WINDOW, cv_ptr->image);
+    imshow(OPENCV_WINDOW, img);
     //imshow("HSV",imgHSV);
     //imshow("Mask",imgMask);
     //imshow("Edges",imgEdges);
     imshow("HoughLinesP",imgHoughLinesP);
     waitKey(25);
-    drive();
-}
-
-void image_cb(const sensor_msgs::ImageConstPtr& msg)
-{
-    cv_bridge::CvImagePtr cv_ptr;
-    try
-    {
-        cv_ptr = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::BGR8);
-    }
-    catch (cv_bridge::Exception& e)
-    {
-        ROS_ERROR("cv_bridge exception: %s", e.what());
-        return;
-    }
-
-    // Crop image
-    Rect roi(0,257,640,223);
-    imgCrop = cv_ptr->image(roi);
-
-    // Convert image to HSV
-    cvtColor(imgCrop, imgHSV, COLOR_BGR2HSV);
-
-    // Trackbars to adjust values for colour mask
-    /*namedWindow("Trackbars",(640,200));
-    createTrackbar("Hue Min","Trackbars",&hmin,179);
-    createTrackbar("Hue Max","Trackbars",&hmax,179);
-    createTrackbar("Sat Min","Trackbars",&smin,255);
-    createTrackbar("Sat Max","Trackbars",&smax,255);
-    createTrackbar("Val Min","Trackbars",&vmin,255);
-    createTrackbar("Val Max","Trackbars",&vmax,255);*/
-
-    // Trackbars to adjust values for Canny edge detector
-    /*namedWindow("Trackbars2",(640,200));
-    createTrackbar("Low Threshold","Trackbars2",&cLowThreshold,100);
-    if (cLowThreshold*3>255) cHighThreshold = 255;*/
-
-    // Trackbars to adjust values for HoughLinesP
-    /*namedWindow("Trackbars3",(640,200));
-    createTrackbar("Threshold","Trackbars3",&hThreshold,100);
-    createTrackbar("Min Line Length","Trackbars3",&hMinLineL,100);
-    createTrackbar("Max Line Gap","Trackbars3",&hMaxLineG,100);*/
-
-    // Apply colour mask
-    Scalar lower (hmin,smin,vmin);
-    Scalar upper (hmax,smax,vmax);
-    inRange(imgHSV,lower,upper,imgMask);
-
-    // Apply Canny edge detection
-    Canny(imgMask,imgEdges,cLowThreshold,cHighThreshold,3);
-    imgHoughLinesP = imgCrop.clone();
-
-    // Probabilistic Line Transform ***Code derived from docs.opencv.org tutorial***
-    HoughLinesP(imgEdges, linesP, 1, CV_PI/180, hThreshold, hMinLineL, hMaxLineG); // Detection
 }
 
 int main(int argc, char **argv) {
@@ -196,41 +195,35 @@ int main(int argc, char **argv) {
 
     // Subscribe to input image topic using image transport.
     image_transport::ImageTransport it(mainNh);
-    image_transport::Subscriber sub = it.subscribe("/camera/rgb/image_raw", 1, image_cb);
+    image_transport::Subscriber sub = it.subscribe("/camera/rgb/image_raw", 1, imageCb);
     namedWindow(OPENCV_WINDOW);
 
-    /*spinOnce();
+    Rate r(10); // 10Hz
+    spinOnce();
+    r.sleep();
+    laneDetection();
+
     int startTime = Time::now().toSec(), lastUpdateTime = startTime;
     while(ros::ok){
         int timeNow = Time::now().toSec();
-        drive();
+
         // Break loop and end program after x seconds
         if(timeNow-startTime > 30){
             ROS_INFO("Time Elapsed: End Program");
             break;
         }
+
         // Spin ros once every second
         if (timeNow-lastUpdateTime > 1){
             ROS_INFO("Updating");
             spinOnce();
+            r.sleep();
+            laneDetection();
             lastUpdateTime = Time::now().toSec();
         }
-    }*/
 
-    Rate r(10); // 10Hz
-    spinOnce();
-    r.sleep();
-    int startTime = Time::now().toSec();
-    while(ros::ok){
-        int timePassed = Time::now().toSec() - startTime;
-        if(timePassed>30){
-            break;
-        }
-        trackLines();
-        spinOnce();
-        r.sleep();
+        drive();
     }
-
     return 0;
 }
 

@@ -27,6 +27,9 @@ int hThreshold = 15, hMinLineL = 10, hMaxLineG = 90;
 int xTrack, yTrack;
 
 void drive(){
+    AsyncSpinner spinner(1);
+    spinner.Start();
+
     NodeHandle driveNh;
     Publisher pub = driveNh.advertise<geometry_msgs::Twist>("cmd_vel", 10);
     geometry_msgs::Twist values;
@@ -193,19 +196,19 @@ int main(int argc, char **argv) {
 
     spinOnce();
     int startTime = Time::now().toSec(), lastUpdateTime = startTime;
-    while(true){
+    while(ros::ok){
         int timeNow = Time::now().toSec();
-        // Spin ros once every second
-        if (timeNow-lastUpdateTime > 1){
-            ROS_INFO("Updating");
-            spinOnce();
-            lastUpdateTime = Time::now().toSec();
-        }
         drive();
         // Break loop and end program after x seconds
         if(timeNow-startTime > 30){
             ROS_INFO("Time Elapsed: End Program");
             break;
+        }
+        // Spin ros once every second
+        if (timeNow-lastUpdateTime > 1){
+            ROS_INFO("Updating");
+            spinOnce();
+            lastUpdateTime = Time::now().toSec();
         }
     }
     return 0;

@@ -12,13 +12,17 @@ using namespace cv;
 using namespace std;
 using namespace ros;
 
+// Image Windows
 static const std::string OPENCV_WINDOW = "Image window";
 Mat imgCrop, imgGBlur, imgHSV, imgMask, imgEdges, imgHoughLinesP;
+
 // Hue, Sat, Value min & max values for colour mask
 int hmin = 0, smin = 0, vmin = 255;
 int hmax = 0, smax = 0, vmax = 255;
+
 // Canny edge detection values
 int cLowThreshold = 50, cHighThreshold = 150;
+
 // HoughLinesP values
 int hThreshold = 15, hMinLineL = 10, hMaxLineG = 90;
 
@@ -27,9 +31,6 @@ int xTrack, yTrack;
 void image_cb(const sensor_msgs::ImageConstPtr& msg)
 {
     cv_bridge::CvImagePtr cv_ptr;
-    //ros::NodeHandle imageProc;
-    //image_transport::ImageTransport it2(imageProc);
-    //image_transport::Publisher pub = it2.advertise("/image_converter/output_video", 1);
     try
     {
         cv_ptr = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::BGR8);
@@ -87,9 +88,7 @@ void image_cb(const sensor_msgs::ImageConstPtr& msg)
         line(imgHoughLinesP, Point(l[0], l[1]), Point(l[2], l[3]), Scalar(0,0,255), 3, LINE_AA);
         // Point(xStart, yStart), Point(xEnd, yEnd)
 
-        // *** THIS IS A FUCKING MIND MELT SORT IT OUT ***
-
-        // *** OPTION 3 ***
+        // *** LINE TRACKING ***
         if(l[1]>l[3]){
             if(l[0]<320 && l[1]>yStartL){
                 xStartL=l[0];
@@ -163,10 +162,6 @@ void image_cb(const sensor_msgs::ImageConstPtr& msg)
     //imshow("Edges",imgEdges);
     imshow("HoughLinesP",imgHoughLinesP);
     waitKey(25);
-
-    //pub.publish(cv_ptr->toImageMsg());
-    //imwrite("/impacs/jow102/catkin_ws/src/jow102_mmp/test_img.jpg", cv_ptr->image);
-    //imwrite("/impacs/jow102/catkin_ws/src/jow102_mmp/test_img_hsv.jpg", imgHSV); //save hsv test image
 }
 
 void drive(){
@@ -198,11 +193,20 @@ int main(int argc, char **argv) {
     //image_transport::Publisher pub = it.advertise("/image_converter/output_video", 1);
     namedWindow(OPENCV_WINDOW);
 
-    //ros::spinOnce();
+    spinOnce();
+    int startTime = Time::now().toSec(), lastUpdateTime = startTime;
     while(true){
-        spinOnce();
-        drive();
-        //break;
+        int timeNow = Time::now().toSec();
+        // Spin ros once every second
+        if (timeNow-lastUpdateTime > 1){
+            spinOnce();
+            drive();
+            lastUpdateTime = timeNow;
+        }
+        // Break loop and end program after 30 seconds
+        if(timeNow-startTime > 30){
+            break;
+        }
     }
     return 0;
 }

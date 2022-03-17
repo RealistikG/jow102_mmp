@@ -19,14 +19,28 @@ Mat imgCrop, imgGBlur, imgHSV, imgMask, imgEdges, imgHoughLinesP;
 // Hue, Sat, Value min & max values for colour mask
 int hmin = 0, smin = 0, vmin = 255;
 int hmax = 0, smax = 0, vmax = 255;
-
 // Canny edge detection values
 int cLowThreshold = 50, cHighThreshold = 150;
-
 // HoughLinesP values
 int hThreshold = 15, hMinLineL = 10, hMaxLineG = 90;
-
+// Point that robot actually tracks
 int xTrack, yTrack;
+
+void drive(){
+    NodeHandle driveNh;
+    Publisher pub = driveNh.advertise<geometry_msgs::Twist>("cmd_vel", 10);
+    geometry_msgs::Twist values;
+
+    int deadzone = 100;
+    values.linear.x = 0.2;
+    if (xTrack>320+deadzone){
+        values.angular.z = -0.2;
+    } else if (xTrack<320-deadzone){
+        values.angular.z = 0.2;
+    } else values.angular.z = 0;
+
+    pub.publish(values);
+}
 
 void image_cb(const sensor_msgs::ImageConstPtr& msg)
 {
@@ -162,22 +176,7 @@ void image_cb(const sensor_msgs::ImageConstPtr& msg)
     //imshow("Edges",imgEdges);
     imshow("HoughLinesP",imgHoughLinesP);
     waitKey(25);
-}
-
-void drive(){
-    NodeHandle driveNh;
-    Publisher pub = driveNh.advertise<geometry_msgs::Twist>("cmd_vel", 10);
-    geometry_msgs::Twist values;
-
-    int deadzone = 100;
-    values.linear.x = 0.2;
-    if (xTrack>320+deadzone){
-        values.angular.z = -0.2;
-    } else if (xTrack<320-deadzone){
-        values.angular.z = 0.2;
-    } else values.angular.z = 0;
-
-    pub.publish(values);
+    drive();
 }
 
 int main(int argc, char **argv) {
@@ -200,7 +199,7 @@ int main(int argc, char **argv) {
         if (timeNow-lastUpdateTime > 1){
             ROS_INFO("Updating");
             spinOnce();
-            drive();
+            //drive();
             lastUpdateTime = Time::now().toSec();
         }
         // Break loop and end program after x seconds

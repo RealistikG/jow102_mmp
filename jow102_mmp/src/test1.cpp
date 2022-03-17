@@ -199,9 +199,9 @@ int main(int argc, char **argv) {
         if (timeNow-lastUpdateTime > 1){
             ROS_INFO("Updating");
             spinOnce();
-            drive();
             lastUpdateTime = Time::now().toSec();
         }
+        drive();
         // Break loop and end program after x seconds
         if(timeNow-startTime > 30){
             ROS_INFO("Time Elapsed: End Program");

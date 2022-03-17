@@ -42,9 +42,12 @@ void imageCb(const sensor_msgs::ImageConstPtr& msg)
 }
 
 void drive(){
+<<<<<<< HEAD
     //AsyncSpinner spinner(1);
     //spinner.Start();
 
+=======
+>>>>>>> parent of 0b32ed4 (Update test1.cpp)
     NodeHandle driveNh;
     Publisher pub = driveNh.advertise<geometry_msgs::Twist>("cmd_vel", 10);
     geometry_msgs::Twist values;
@@ -204,8 +207,9 @@ int main(int argc, char **argv) {
     laneDetection();
 
     int startTime = Time::now().toSec(), lastUpdateTime = startTime;
-    while(ros::ok){
+    while(true){
         int timeNow = Time::now().toSec();
+<<<<<<< HEAD
 
         // Break loop and end program after x seconds
         if(timeNow-startTime > 30){
@@ -213,6 +217,8 @@ int main(int argc, char **argv) {
             break;
         }
 
+=======
+>>>>>>> parent of 0b32ed4 (Update test1.cpp)
         // Spin ros once every second
         if (timeNow-lastUpdateTime > 1){
             ROS_INFO("Updating");
@@ -221,8 +227,17 @@ int main(int argc, char **argv) {
             laneDetection();
             lastUpdateTime = Time::now().toSec();
         }
+<<<<<<< HEAD
 
         drive();
+=======
+        drive();
+        // Break loop and end program after x seconds
+        if(timeNow-startTime > 30){
+            ROS_INFO("Time Elapsed: End Program");
+            break;
+        }
+>>>>>>> parent of 0b32ed4 (Update test1.cpp)
     }
     return 0;
 }

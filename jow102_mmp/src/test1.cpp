@@ -190,7 +190,6 @@ int main(int argc, char **argv) {
     // Subscribe to input image topic using image transport.
     image_transport::ImageTransport it(mainNh);
     image_transport::Subscriber sub = it.subscribe("/camera/rgb/image_raw", 1, image_cb);
-    //image_transport::Publisher pub = it.advertise("/image_converter/output_video", 1);
     namedWindow(OPENCV_WINDOW);
 
     spinOnce();
@@ -199,12 +198,14 @@ int main(int argc, char **argv) {
         int timeNow = Time::now().toSec();
         // Spin ros once every second
         if (timeNow-lastUpdateTime > 1){
+            ROS_INFO("Updating");
             spinOnce();
             drive();
-            lastUpdateTime = timeNow;
+            lastUpdateTime = Time::now().toSec();
         }
-        // Break loop and end program after 30 seconds
-        if(timeNow-startTime > 30){
+        // Break loop and end program after x seconds
+        if(timeNow-startTime > 60){
+            ROS_INFO("60s Elapsed: End Program");
             break;
         }
     }

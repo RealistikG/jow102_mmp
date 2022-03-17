@@ -14,19 +14,21 @@ using namespace ros;
 
 // Image Windows
 static const std::string OPENCV_WINDOW = "Image window";
-Mat img, imgCrop, imgHSV, imgMask, imgEdges, imgHoughLinesP;
+Mat imgCrop, imgGBlur, imgHSV, imgMask, imgEdges, imgHoughLinesP;
 
 // Hue, Sat, Value min & max values for colour mask
 int hmin = 0, smin = 0, vmin = 255;
 int hmax = 0, smax = 0, vmax = 255;
+
 // Canny edge detection values
 int cLowThreshold = 50, cHighThreshold = 150;
+
 // HoughLinesP values
 int hThreshold = 15, hMinLineL = 10, hMaxLineG = 90;
-// Point that robot actually tracks
+
 int xTrack, yTrack;
 
-void imageCb(const sensor_msgs::ImageConstPtr& msg)
+void image_cb(const sensor_msgs::ImageConstPtr& msg)
 {
     cv_bridge::CvImagePtr cv_ptr;
     try
@@ -38,36 +40,10 @@ void imageCb(const sensor_msgs::ImageConstPtr& msg)
         ROS_ERROR("cv_bridge exception: %s", e.what());
         return;
     }
-    img = cv_ptr->image;
-}
 
-void drive(){
-<<<<<<< HEAD
-    //AsyncSpinner spinner(1);
-    //spinner.Start();
-
-=======
->>>>>>> parent of 0b32ed4 (Update test1.cpp)
-    NodeHandle driveNh;
-    Publisher pub = driveNh.advertise<geometry_msgs::Twist>("cmd_vel", 10);
-    geometry_msgs::Twist values;
-
-    //ROS_INFO("DRIVING");
-    int deadzone = 100;
-    values.linear.x = 0.2;
-    if (xTrack>320+deadzone){
-        values.angular.z = -0.2;
-    } else if (xTrack<320-deadzone){
-        values.angular.z = 0.2;
-    } else values.angular.z = 0;
-
-    pub.publish(values);
-}
-
-void laneDetection(){
     // Crop image
     Rect roi(0,257,640,223);
-    imgCrop = img(roi);
+    imgCrop = cv_ptr->image(roi);
 
     // Convert image to HSV
     cvtColor(imgCrop, imgHSV, COLOR_BGR2HSV);
@@ -102,8 +78,7 @@ void laneDetection(){
     imgHoughLinesP = imgCrop.clone();
 
     // Probabilistic Line Transform ***Code derived from docs.opencv.org tutorial***
-    // Vector to hold results of HoughLinesP detection
-    vector<Vec4i> linesP;
+    vector<Vec4i> linesP; // Hold results of detection
     HoughLinesP(imgEdges, linesP, 1, CV_PI/180, hThreshold, hMinLineL, hMaxLineG); // Detection
     int xStartR=-1, xEndR=1000, yStartR=-1, yEndR=1000, xStartL=-1, xEndL=-1, yStartL=-1, yEndL=1000;
     // Draw lines
@@ -177,16 +152,32 @@ void laneDetection(){
         yTrack=(yStartC+yEndC)/2;
     } else {
         xTrack = 320;
-        yTrack = 0;
+        yTrack = 240;
     }
 
     // Update GUI Windows
-    imshow(OPENCV_WINDOW, img);
+    imshow(OPENCV_WINDOW, cv_ptr->image);
     //imshow("HSV",imgHSV);
     //imshow("Mask",imgMask);
     //imshow("Edges",imgEdges);
     imshow("HoughLinesP",imgHoughLinesP);
     waitKey(25);
+}
+
+void drive(){
+    NodeHandle driveNh;
+    Publisher pub = driveNh.advertise<geometry_msgs::Twist>("cmd_vel", 10);
+    geometry_msgs::Twist values;
+
+    int deadzone = 100;
+    values.linear.x = 0.2;
+    if (xTrack>320+deadzone){
+        values.angular.z = -0.2;
+    } else if (xTrack<320-deadzone){
+        values.angular.z = 0.2;
+    } else values.angular.z = 0;
+
+    pub.publish(values);
 }
 
 int main(int argc, char **argv) {
@@ -198,49 +189,27 @@ int main(int argc, char **argv) {
 
     // Subscribe to input image topic using image transport.
     image_transport::ImageTransport it(mainNh);
-    image_transport::Subscriber sub = it.subscribe("/camera/rgb/image_raw", 1, imageCb);
+    image_transport::Subscriber sub = it.subscribe("/camera/rgb/image_raw", 1, image_cb);
     namedWindow(OPENCV_WINDOW);
 
-    Rate r(10); // 10Hz
     spinOnce();
-    r.sleep();
-    laneDetection();
-
     int startTime = Time::now().toSec(), lastUpdateTime = startTime;
     while(true){
         int timeNow = Time::now().toSec();
-<<<<<<< HEAD
-
-        // Break loop and end program after x seconds
-        if(timeNow-startTime > 30){
-            ROS_INFO("Time Elapsed: End Program");
-            break;
-        }
-
-=======
->>>>>>> parent of 0b32ed4 (Update test1.cpp)
         // Spin ros once every second
         if (timeNow-lastUpdateTime > 1){
             ROS_INFO("Updating");
             spinOnce();
-            r.sleep();
-            laneDetection();
+            drive();
             lastUpdateTime = Time::now().toSec();
         }
-<<<<<<< HEAD
-
-        drive();
-=======
-        drive();
         // Break loop and end program after x seconds
-        if(timeNow-startTime > 30){
-            ROS_INFO("Time Elapsed: End Program");
+        if(timeNow-startTime > 60){
+            ROS_INFO("60s Elapsed: End Program");
             break;
         }
->>>>>>> parent of 0b32ed4 (Update test1.cpp)
     }
     return 0;
 }
-
 
 

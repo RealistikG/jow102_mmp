@@ -41,12 +41,14 @@ void image_cb(const sensor_msgs::ImageConstPtr& msg)
         return;
     }
 
-    img = cv_ptr->image;
-    //imshow(OPENCV_WINDOW, cv_ptr->image);
+    img = cv_ptr->image.clone();
+    imshow(OPENCV_WINDOW, cv_ptr->image);
+    //imshow("img",img);
+    waitKey(25);
 }
 
 void imageProc(){
-    imshow(OPENCV_WINDOW, img);
+    imshow("img", img);
     waitKey(25);
 }
 
@@ -78,23 +80,15 @@ int main(int argc, char **argv) {
     image_transport::Subscriber sub = it.subscribe("/camera/rgb/image_raw", 1, image_cb);
     namedWindow(OPENCV_WINDOW);
 
-    //spinOnce();
-    int startTime = Time::now().toSec(), lastUpdateTime = startTime;
-    while(true){
-        /*int timeNow = Time::now().toSec();
-        // Spin ros once every second
-        if (timeNow-lastUpdateTime > 1){
-            ROS_INFO("Updating");
-            spinOnce();
-            //drive();
-            lastUpdateTime = Time::now().toSec();
-        }
-        // Break loop and end program after x seconds
-        if(timeNow-startTime > 30){
-            ROS_INFO("Time Elapsed: End Program");
-            break;
-        }*/
+    spinOnce();
+    int startTime = Time::now().toSec(), currentTime = startTime;
+    while(currentTime-startTime<1){
+        currentTime = Time::now().toSec();
+    }
+    Rate r(10); // 10Hz
+    while(ros::ok){
         spinOnce();
+        r.sleep();
         imageProc();
     }
     return 0;

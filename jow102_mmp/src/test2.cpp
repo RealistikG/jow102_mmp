@@ -200,7 +200,7 @@ int main(int argc, char **argv) {
 
     Rate r(10); // 10Hz
     spinOnce();
-    r.sleep();
+    //r.sleep();
     laneDetection();
 
     int startTime = Time::now().toSec(), lastUpdateTime = startTime;
@@ -217,7 +217,7 @@ int main(int argc, char **argv) {
         if (timeNow-lastUpdateTime > 1){
             ROS_INFO("Updating");
             spinOnce();
-            r.sleep();
+            //r.sleep();
             laneDetection();
             lastUpdateTime = Time::now().toSec();
         }

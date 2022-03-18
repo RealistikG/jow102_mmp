@@ -201,13 +201,17 @@ int main(int argc, char **argv) {
     image_transport::Subscriber sub = it.subscribe("/camera/rgb/image_raw", 1, image_cb);
     namedWindow(OPENCV_WINDOW);
 
+    // Extra single thread Asyncspinner to help with callback functions blocking
+    AsyncSpinner spinner(1);
+    spinner.start();
+
     Rate r(10); // 10Hz
     spinOnce();
     r.sleep();
 
     // Small loop to give the callback time to run.
     int startTime = Time::now().toSec(), currentTime = startTime;
-    while(currentTime-startTime<1){
+    while(currentTime-startTime<0.5){
         currentTime = Time::now().toSec();
     }
 
@@ -217,7 +221,7 @@ int main(int argc, char **argv) {
     {
         // Break loop & end program after x seconds
         currentTime = Time::now().toSec();
-        if(currentTime-startTime>30){
+        if(currentTime-startTime>10){
             ROS_INFO("Time Elapsed: Ending Program");
             break;
         }

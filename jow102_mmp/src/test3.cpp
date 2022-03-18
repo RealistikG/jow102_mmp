@@ -14,7 +14,7 @@ using namespace ros;
 
 // Image Windows
 static const std::string OPENCV_WINDOW = "Image window";
-Mat imgCrop, imgGBlur, imgHSV, imgMask, imgEdges, imgHoughLinesP;
+Mat img, imgCrop, imgHSV, imgMask, imgEdges, imgHoughLinesP;
 
 // Hue, Sat, Value min & max values for colour mask
 int hmin = 0, smin = 0, vmin = 255;
@@ -41,10 +41,16 @@ void image_cb(const sensor_msgs::ImageConstPtr& msg)
         return;
     }
 
-    imshow(OPENCV_WINDOW, cv_ptr->image);
+    img = cv_ptr->image;
+    //imshow(OPENCV_WINDOW, cv_ptr->image);
 }
 
-void drive(){
+void imageProc(){
+    imshow(OPENCV_WINDOW, img);
+    waitKey(25);
+}
+
+/*void drive(){
     NodeHandle driveNh;
     Publisher pub = driveNh.advertise<geometry_msgs::Twist>("cmd_vel", 10);
     geometry_msgs::Twist values;
@@ -58,7 +64,7 @@ void drive(){
     } else values.angular.z = 0;
 
     pub.publish(values);
-}
+}*/
 
 int main(int argc, char **argv) {
     // Initialize the ROS system.
@@ -89,6 +95,7 @@ int main(int argc, char **argv) {
             break;
         }*/
         spinOnce();
+        imageProc();
     }
     return 0;
 }

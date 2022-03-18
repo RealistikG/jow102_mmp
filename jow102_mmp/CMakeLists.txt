@@ -143,6 +143,7 @@ include_directories(
 # add_executable(${PROJECT_NAME}_node src/jow102_mmp_node.cpp)
 add_executable(test1 src/test1.cpp)
 add_executable(test2 src/test2.cpp)
+add_executable(test3 src/test3.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -161,6 +162,7 @@ add_executable(test2 src/test2.cpp)
 
 target_link_libraries(test1 ${catkin_LIBRARIES} ${OpenCV_LIBRARIES})
 target_link_libraries(test2 ${catkin_LIBRARIES} ${OpenCV_LIBRARIES})
+target_link_libraries(test3 ${catkin_LIBRARIES} ${OpenCV_LIBRARIES})
 
 #${OpenCV_INCLUDE_DIRS}
 

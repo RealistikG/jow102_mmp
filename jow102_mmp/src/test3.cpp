@@ -72,7 +72,7 @@ int main(int argc, char **argv) {
     image_transport::Subscriber sub = it.subscribe("/camera/rgb/image_raw", 1, image_cb);
     namedWindow(OPENCV_WINDOW);
 
-    spinOnce();
+    //spinOnce();
     int startTime = Time::now().toSec(), lastUpdateTime = startTime;
     while(true){
         /*int timeNow = Time::now().toSec();

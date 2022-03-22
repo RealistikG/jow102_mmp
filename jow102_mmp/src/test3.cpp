@@ -173,7 +173,7 @@ void imageProc(){
     waitKey(25);
 }
 
-/*void drive(){
+void drive(){
     NodeHandle driveNh;
     Publisher pub = driveNh.advertise<geometry_msgs::Twist>("cmd_vel", 10);
     geometry_msgs::Twist values;
@@ -187,7 +187,7 @@ void imageProc(){
     } else values.angular.z = 0;
 
     pub.publish(values);
-}*/
+}
 
 int main(int argc, char **argv) {
     // Initialize the ROS system.
@@ -227,6 +227,7 @@ int main(int argc, char **argv) {
         }
 
         imageProc();
+        drive();
 
         spinOnce();
         r.sleep();

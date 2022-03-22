@@ -13,20 +13,22 @@ using namespace std;
 using namespace ros;
 
 // Image Windows
-static const std::string OPENCV_WINDOW = "Image window";
+static const string OPENCV_WINDOW = "Image window";
 Mat img, imgCrop, imgHSV, imgMask, imgEdges, imgHoughLinesP;
 
 // Hue, Sat, Value min & max values for colour mask
 int hmin = 0, smin = 0, vmin = 255;
 int hmax = 0, smax = 0, vmax = 255;
+
 // Canny edge detection values
 int cLowThreshold = 50, cHighThreshold = 150;
+
 // HoughLinesP values
 int hThreshold = 15, hMinLineL = 10, hMaxLineG = 90;
-// Point that robot actually tracks
+
 int xTrack, yTrack;
 
-void imageCb(const sensor_msgs::ImageConstPtr& msg)
+void image_cb(const sensor_msgs::ImageConstPtr& msg)
 {
     cv_bridge::CvImagePtr cv_ptr;
     try
@@ -38,30 +40,16 @@ void imageCb(const sensor_msgs::ImageConstPtr& msg)
         ROS_ERROR("cv_bridge exception: %s", e.what());
         return;
     }
-    img = cv_ptr->image;
+
+    img = cv_ptr->image.clone();
+    imshow(OPENCV_WINDOW, cv_ptr->image);
+    //imshow("img",img);
+    waitKey(25);
 }
 
-void drive(){
-    //AsyncSpinner spinner(1);
-    //spinner.Start();
-
-    NodeHandle driveNh;
-    Publisher pub = driveNh.advertise<geometry_msgs::Twist>("cmd_vel", 10);
-    geometry_msgs::Twist values;
-
-    //ROS_INFO("DRIVING");
-    int deadzone = 100;
-    values.linear.x = 0.2;
-    if (xTrack>320+deadzone){
-        values.angular.z = -0.2;
-    } else if (xTrack<320-deadzone){
-        values.angular.z = 0.2;
-    } else values.angular.z = 0;
-
-    pub.publish(values);
-}
-
-void laneDetection(){
+void imageProc(){
+    //imshow("img", img);
+    //waitKey(25);
     // Crop image
     Rect roi(0,257,640,223);
     imgCrop = img(roi);
@@ -178,13 +166,28 @@ void laneDetection(){
     }
 
     // Update GUI Windows
-    imshow(OPENCV_WINDOW, img);
     //imshow("HSV",imgHSV);
     //imshow("Mask",imgMask);
     //imshow("Edges",imgEdges);
     imshow("HoughLinesP",imgHoughLinesP);
     waitKey(25);
 }
+
+/*void drive(){
+    NodeHandle driveNh;
+    Publisher pub = driveNh.advertise<geometry_msgs::Twist>("cmd_vel", 10);
+    geometry_msgs::Twist values;
+
+    int deadzone = 100;
+    values.linear.x = 0.2;
+    if (xTrack>320+deadzone){
+        values.angular.z = -0.2;
+    } else if (xTrack<320-deadzone){
+        values.angular.z = 0.2;
+    } else values.angular.z = 0;
+
+    pub.publish(values);
+}*/
 
 int main(int argc, char **argv) {
     // Initialize the ROS system.
@@ -195,37 +198,40 @@ int main(int argc, char **argv) {
 
     // Subscribe to input image topic using image transport.
     image_transport::ImageTransport it(mainNh);
-    image_transport::Subscriber sub = it.subscribe("/camera/rgb/image_raw", 1, imageCb);
+    image_transport::Subscriber sub = it.subscribe("/camera/rgb/image_raw", 1, image_cb);
     namedWindow(OPENCV_WINDOW);
+
+    // Extra single thread Asyncspinner to help with callback functions blocking
+    AsyncSpinner spinner(1);
+    spinner.start();
 
     Rate r(10); // 10Hz
     spinOnce();
-    //r.sleep();
-    laneDetection();
+    r.sleep();
 
-    int startTime = Time::now().toSec(), lastUpdateTime = startTime;
-    while(ros::ok){
-        int timeNow = Time::now().toSec();
+    // Small loop to give the callback time to run.
+    int startTime = Time::now().toSec(), currentTime = startTime;
+    while(currentTime-startTime<0.5){
+        currentTime = Time::now().toSec();
+    }
 
-        // Break loop and end program after x seconds
-        if(timeNow-startTime > 30){
-            ROS_INFO("Time Elapsed: End Program");
+    // Main loop
+    startTime = Time::now().toSec();
+    while(ros::ok)
+    {
+        // Break loop & end program after x seconds
+        currentTime = Time::now().toSec();
+        if(currentTime-startTime>10){
+            ROS_INFO("Time Elapsed: Ending Program");
             break;
         }
 
-        // Spin ros once every second
-        if (timeNow-lastUpdateTime > 1){
-            ROS_INFO("Updating");
-            spinOnce();
-            //r.sleep();
-            laneDetection();
-            lastUpdateTime = Time::now().toSec();
-        }
+        imageProc();
 
-        drive();
+        spinOnce();
+        r.sleep();
     }
     return 0;
 }
-
 
 

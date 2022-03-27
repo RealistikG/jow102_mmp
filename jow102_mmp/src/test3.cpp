@@ -60,7 +60,7 @@ void *imageProc(void *paramID){
     image_transport::ImageTransport it(imageProcNh);
     image_transport::Subscriber sub = it.subscribe("/camera/rgb/image_raw", 1, image_cb);
 
-    Rate rate(5);
+    Rate rate(10);
     spinOnce();
     rate.sleep();
 
@@ -230,7 +230,7 @@ int main(int argc, char **argv) {
         exit(-1);
     }
 
-    Rate rate(5);
+    Rate rate(10;
     int startTime = Time::now().toSec(), currentTime = startTime;
 
     // Main loop

@@ -10,6 +10,7 @@
 
 // Include misc
 #include <pthread.h>
+#include <iostream>
 
 using namespace cv;
 using namespace std;
@@ -48,7 +49,11 @@ void image_cb(const sensor_msgs::ImageConstPtr& msg)
     waitKey(25);*/
 }
 
-void imageProc(){
+void *imageProc(void *paramID){
+    long tid;
+    tid = (long)paramID;
+    cout << "Thread ID, " << tid << endl;
+
     // Create new NodeHandle
     NodeHandle imageProcNh;
     // Subscribe to input image topic using image transport.

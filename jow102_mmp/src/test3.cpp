@@ -68,7 +68,7 @@ void *imageProc(void *paramID){
 
     // Short loop to give time for startup
     int startTime = Time::now().toSec(), currentTime = startTime;
-    while(currentTime-startTime<1){
+    while(currentTime-startTime<5){
         currentTime = Time::now().toSec();
     }
 

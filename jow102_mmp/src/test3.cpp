@@ -29,7 +29,7 @@ int cLowThreshold = 50, cHighThreshold = 150;
 // HoughLinesP values
 int hThreshold = 15, hMinLineL = 10, hMaxLineG = 90;
 
-int xTrack, yTrack;
+int xTrack = 320, yTrack = 0;
 
 void image_cb(const sensor_msgs::ImageConstPtr& msg)
 {
@@ -66,7 +66,7 @@ void *imageProc(void *paramID){
 
     // Short loop to give time for startup
     int startTime = Time::now().toSec(), currentTime = startTime;
-    while(currentTime-startTime<0.5){
+    while(currentTime-startTime<1){
         currentTime = Time::now().toSec();
     }
 
@@ -206,7 +206,7 @@ void drive(){
     Publisher pub = driveNh.advertise<geometry_msgs::Twist>("cmd_vel", 10);
     geometry_msgs::Twist values;
 
-    int deadzone = 100;
+    int deadzone = 50;
     values.linear.x = 0.2;
     if (xTrack>320+deadzone){
         values.angular.z = -0.2;
@@ -238,7 +238,7 @@ int main(int argc, char **argv) {
     {
         // Break loop & end program after x seconds
         currentTime = Time::now().toSec();
-        if(currentTime-startTime>10){
+        if(currentTime-startTime>20){
             ROS_INFO("Time Elapsed: Ending Program");
             break;
         }

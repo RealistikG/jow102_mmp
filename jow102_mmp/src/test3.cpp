@@ -44,10 +44,11 @@ void image_cb(const sensor_msgs::ImageConstPtr& msg)
         return;
     }
 
-    cout << "CB TEST" << endl;
+    //cout << "CB TEST" << endl;
+    ROS_INFO("CB TEST");
     img = cv_ptr->image.clone();
-    /*imshow("Image", cv_ptr->image);
-    waitKey(25);*/
+    imshow("Image", cv_ptr->image);
+    waitKey(10);
 }
 
 void *imageProc(void *paramID){
@@ -190,7 +191,7 @@ void *imageProc(void *paramID){
         }
 
         // Update GUI Windows
-        imshow("Image", img);
+        //imshow("Image", img);
         //imshow("HSV",imgHSV);
         //imshow("Mask",imgMask);
         //imshow("Edges",imgEdges);

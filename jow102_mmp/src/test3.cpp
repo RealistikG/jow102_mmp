@@ -44,6 +44,7 @@ void image_cb(const sensor_msgs::ImageConstPtr& msg)
         return;
     }
 
+    cout << "CB TEST" << endl;
     img = cv_ptr->image.clone();
     /*imshow("Image", cv_ptr->image);
     waitKey(25);*/
@@ -73,6 +74,7 @@ void *imageProc(void *paramID){
     // Main image proc loop
     while(ros::ok()){
         // Crop image
+        cout << "ImageProc TEST" << endl;
         Rect roi(0,257,640,223);
         imgCrop = img(roi);
 

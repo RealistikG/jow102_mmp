@@ -73,9 +73,10 @@ void *imageProc(void *paramID){
     }
 
     // Main image proc loop
-    /*while(ros::ok()){
-        // Crop image
+    while(ros::ok()){
         cout << "ImageProc TEST" << endl;
+
+        // Crop image
         Rect roi(0,257,640,223);
         imgCrop = img(roi);
 
@@ -83,24 +84,24 @@ void *imageProc(void *paramID){
         cvtColor(imgCrop, imgHSV, COLOR_BGR2HSV);
 
         // Trackbars to adjust values for colour mask
-        *//*namedWindow("Trackbars",(640,200));
+        namedWindow("Trackbars",(640,200));
         createTrackbar("Hue Min","Trackbars",&hmin,179);
         createTrackbar("Hue Max","Trackbars",&hmax,179);
         createTrackbar("Sat Min","Trackbars",&smin,255);
         createTrackbar("Sat Max","Trackbars",&smax,255);
         createTrackbar("Val Min","Trackbars",&vmin,255);
-        createTrackbar("Val Max","Trackbars",&vmax,255);*//*
+        createTrackbar("Val Max","Trackbars",&vmax,255);
 
         // Trackbars to adjust values for Canny edge detector
-        *//*namedWindow("Trackbars2",(640,200));
+        namedWindow("Trackbars2",(640,200));
         createTrackbar("Low Threshold","Trackbars2",&cLowThreshold,100);
-        if (cLowThreshold*3>255) cHighThreshold = 255;*//*
+        if (cLowThreshold*3>255) cHighThreshold = 255;
 
         // Trackbars to adjust values for HoughLinesP
-        *//*namedWindow("Trackbars3",(640,200));
+        namedWindow("Trackbars3",(640,200));
         createTrackbar("Threshold","Trackbars3",&hThreshold,100);
         createTrackbar("Min Line Length","Trackbars3",&hMinLineL,100);
-        createTrackbar("Max Line Gap","Trackbars3",&hMaxLineG,100);*//*
+        createTrackbar("Max Line Gap","Trackbars3",&hMaxLineG,100);
 
         // Apply colour mask
         Scalar lower (hmin,smin,vmin);
@@ -200,7 +201,7 @@ void *imageProc(void *paramID){
 
         spinOnce();
         rate.sleep();
-    }*/
+    }
     pthread_exit(NULL);
 }
 
@@ -239,6 +240,8 @@ int main(int argc, char **argv) {
     // Main loop
     while(ros::ok())
     {
+        cout << "Main TEST" << endl;
+
         // Break loop & end program after x seconds
         currentTime = Time::now().toSec();
         /*if(currentTime-startTime>20){

@@ -45,10 +45,10 @@ void image_cb(const sensor_msgs::ImageConstPtr& msg)
     }
 
     //cout << "CB TEST" << endl;
-    ROS_INFO("CB TEST");
+    //ROS_INFO("CB TEST");
     img = cv_ptr->image.clone();
     imshow("Image", cv_ptr->image);
-    waitKey(10);
+    waitKey(25);
 }
 
 void *imageProc(void *paramID){
@@ -241,10 +241,10 @@ int main(int argc, char **argv) {
     {
         // Break loop & end program after x seconds
         currentTime = Time::now().toSec();
-        if(currentTime-startTime>20){
+        /*if(currentTime-startTime>20){
             ROS_INFO("Time Elapsed: Ending Program");
             break;
-        }
+        }*/
         drive();
         rate.sleep();
     }

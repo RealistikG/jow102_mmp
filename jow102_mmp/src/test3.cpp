@@ -230,7 +230,7 @@ int main(int argc, char **argv) {
         exit(-1);
     }
 
-    Rate rate(10;
+    Rate rate(10);
     int startTime = Time::now().toSec(), currentTime = startTime;
 
     // Main loop

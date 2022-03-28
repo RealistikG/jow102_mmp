@@ -56,11 +56,11 @@ void *imageProc(void *paramID){
     tid = (long)paramID;
     cout << "Thread ID, " << tid << endl;
 
-    // Create new NodeHandle
+    /*// Create new NodeHandle
     NodeHandle imageProcNh;
     // Subscribe to input image topic using image transport.
     image_transport::ImageTransport it(imageProcNh);
-    image_transport::Subscriber sub = it.subscribe("/camera/rgb/image_raw", 1, image_cb);
+    image_transport::Subscriber sub = it.subscribe("/camera/rgb/image_raw", 1, image_cb);*/
 
     Rate rate(10);
     spinOnce();
@@ -225,6 +225,10 @@ int main(int argc, char **argv) {
     // Initialize ROS
     init(argc, argv, "test");
     NodeHandle mainNh;
+
+    // Subscribe to input image topic using image transport.
+    image_transport::ImageTransport it(mainNh);
+    image_transport::Subscriber sub = it.subscribe("/camera/rgb/image_raw", 1, image_cb);
 
     // Create new thread
     pthread_t thread;

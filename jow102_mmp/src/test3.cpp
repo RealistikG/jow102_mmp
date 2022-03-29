@@ -62,11 +62,11 @@ void *imageProc(void *paramID){
     image_transport::ImageTransport it(imageProcNh);
     image_transport::Subscriber sub = it.subscribe("/camera/rgb/image_raw", 1, image_cb);*/
 
-    Rate rate(10);
+    /*Rate rate(10);
     spinOnce();
-    rate.sleep();
+    rate.sleep();*/
 
-    // Short loop to give time for startup
+    // Short loop for testing
     int startTime = Time::now().toSec(), currentTime = startTime;
     while(currentTime-startTime<5){
         currentTime = Time::now().toSec();
@@ -84,24 +84,24 @@ void *imageProc(void *paramID){
         cvtColor(imgCrop, imgHSV, COLOR_BGR2HSV);
 
         // Trackbars to adjust values for colour mask
-        namedWindow("Trackbars",(640,200));
+        /*namedWindow("Trackbars",(640,200));
         createTrackbar("Hue Min","Trackbars",&hmin,179);
         createTrackbar("Hue Max","Trackbars",&hmax,179);
         createTrackbar("Sat Min","Trackbars",&smin,255);
         createTrackbar("Sat Max","Trackbars",&smax,255);
         createTrackbar("Val Min","Trackbars",&vmin,255);
-        createTrackbar("Val Max","Trackbars",&vmax,255);
+        createTrackbar("Val Max","Trackbars",&vmax,255);*/
 
         // Trackbars to adjust values for Canny edge detector
-        namedWindow("Trackbars2",(640,200));
+        /*namedWindow("Trackbars2",(640,200));
         createTrackbar("Low Threshold","Trackbars2",&cLowThreshold,100);
-        if (cLowThreshold*3>255) cHighThreshold = 255;
+        if (cLowThreshold*3>255) cHighThreshold = 255;*/
 
         // Trackbars to adjust values for HoughLinesP
-        namedWindow("Trackbars3",(640,200));
+        /*namedWindow("Trackbars3",(640,200));
         createTrackbar("Threshold","Trackbars3",&hThreshold,100);
         createTrackbar("Min Line Length","Trackbars3",&hMinLineL,100);
-        createTrackbar("Max Line Gap","Trackbars3",&hMaxLineG,100);
+        createTrackbar("Max Line Gap","Trackbars3",&hMaxLineG,100);*/
 
         // Apply colour mask
         Scalar lower (hmin,smin,vmin);
@@ -199,8 +199,8 @@ void *imageProc(void *paramID){
         imshow("HoughLinesP",imgHoughLinesP);
         waitKey(25);
 
-        spinOnce();
-        rate.sleep();
+        //spinOnce();
+        //rate.sleep();
     }
     pthread_exit(NULL);
 }
@@ -223,12 +223,16 @@ void drive(){
 
 int main(int argc, char **argv) {
     // Initialize ROS
-    init(argc, argv, "test");
+    init(argc, argv, "jow102_mmp");
     NodeHandle mainNh;
 
     // Subscribe to input image topic using image transport.
     image_transport::ImageTransport it(mainNh);
     image_transport::Subscriber sub = it.subscribe("/camera/rgb/image_raw", 1, image_cb);
+
+    Rate rate(10);
+    spinOnce();
+    rate.sleep();
 
     // Create new thread
     pthread_t thread;
@@ -238,7 +242,6 @@ int main(int argc, char **argv) {
         exit(-1);
     }
 
-    Rate rate(10);
     int startTime = Time::now().toSec(), currentTime = startTime;
 
     // Main loop
@@ -253,6 +256,8 @@ int main(int argc, char **argv) {
             break;
         }*/
         drive();
+
+        spinOnce();
         rate.sleep();
     }
     pthread_exit(NULL);

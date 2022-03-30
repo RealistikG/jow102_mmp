@@ -56,20 +56,13 @@ void *imageProc(void *paramID){
     tid = (long)paramID;
     cout << "Thread ID, " << tid << endl;
 
-    /*// Create new NodeHandle
-    NodeHandle imageProcNh;
-    // Subscribe to input image topic using image transport.
-    image_transport::ImageTransport it(imageProcNh);
-    image_transport::Subscriber sub = it.subscribe("/camera/rgb/image_raw", 1, image_cb);*/
-
-    /*Rate rate(10);
-    spinOnce();
-    rate.sleep();*/
+    Rate rate(10);
 
     // Short loop for testing
     int startTime = Time::now().toSec(), currentTime = startTime;
-    while(currentTime-startTime<5){
+    while(currentTime-startTime<1){
         currentTime = Time::now().toSec();
+        rate.sleep();
     }
 
     // Main image proc loop
@@ -199,15 +192,12 @@ void *imageProc(void *paramID){
         imshow("HoughLinesP",imgHoughLinesP);
         waitKey(25);
 
-        //spinOnce();
-        //rate.sleep();
+        rate.sleep();
     }
     pthread_exit(NULL);
 }
 
-void drive(){
-    NodeHandle driveNh;
-    Publisher pub = driveNh.advertise<geometry_msgs::Twist>("cmd_vel", 10);
+void drive(Publisher pub){
     geometry_msgs::Twist values;
 
     int deadzone = 50;
@@ -226,13 +216,15 @@ int main(int argc, char **argv) {
     init(argc, argv, "jow102_mmp");
     NodeHandle mainNh;
 
-    // Subscribe to input image topic using image transport.
+    // Subscribe to input image topic using image transport
     image_transport::ImageTransport it(mainNh);
     image_transport::Subscriber sub = it.subscribe("/camera/rgb/image_raw", 1, image_cb);
 
+    // Publisher for driving
+    Publisher pub = mainNh.advertise<geometry_msgs::Twist>("cmd_vel", 10);
+
     Rate rate(10);
     spinOnce();
-    rate.sleep();
 
     // Create new thread
     pthread_t thread;
@@ -242,20 +234,19 @@ int main(int argc, char **argv) {
         exit(-1);
     }
 
-    int startTime = Time::now().toSec(), currentTime = startTime;
-
     // Main loop
+    //int startTime = Time::now().toSec(), currentTime = startTime;
     while(ros::ok())
     {
         cout << "Main TEST" << endl;
 
         // Break loop & end program after x seconds
-        currentTime = Time::now().toSec();
-        /*if(currentTime-startTime>20){
+        /*currentTime = Time::now().toSec();
+        if(currentTime-startTime>20){
             ROS_INFO("Time Elapsed: Ending Program");
             break;
         }*/
-        drive();
+        drive(pub);
 
         spinOnce();
         rate.sleep();

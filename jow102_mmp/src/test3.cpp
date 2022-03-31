@@ -60,7 +60,7 @@ void *imageProc(void *paramID){
 
     // Short loop for testing
     int startTime = Time::now().toSec(), currentTime = startTime;
-    while(currentTime-startTime<1){
+    while(currentTime-startTime<5){
         currentTime = Time::now().toSec();
         rate.sleep();
     }
@@ -225,6 +225,7 @@ int main(int argc, char **argv) {
 
     Rate rate(10);
     spinOnce();
+    rate.sleep();
 
     // Create new thread
     pthread_t thread;

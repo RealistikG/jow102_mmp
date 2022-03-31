@@ -192,7 +192,7 @@ void *imageProc(void *paramID){
         imshow("HoughLinesP",imgHoughLinesP);
         waitKey(10);
 
-        spinOnce();
+        //spinOnce();
         rate.sleep();
     }
     pthread_exit(NULL);
@@ -248,9 +248,9 @@ int main(int argc, char **argv) {
             ROS_INFO("Time Elapsed: Ending Program");
             break;
         }*/
-        //drive(pub);
+        drive(pub);
 
-        //spinOnce();
+        spinOnce();
         rate.sleep();
     }
     pthread_exit(NULL);

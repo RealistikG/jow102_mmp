@@ -48,7 +48,7 @@ void image_cb(const sensor_msgs::ImageConstPtr& msg)
     //ROS_INFO("CB TEST");
     img = cv_ptr->image.clone();
     imshow("Image", cv_ptr->image);
-    waitKey(25);
+    waitKey(10);
 }
 
 void *imageProc(void *paramID){
@@ -67,7 +67,7 @@ void *imageProc(void *paramID){
 
     // Main image proc loop
     while(ros::ok()){
-        cout << "ImageProc TEST" << endl;
+        //out << "ImageProc TEST" << endl;
 
         // Crop image
         Rect roi(0,257,640,223);
@@ -239,7 +239,7 @@ int main(int argc, char **argv) {
     //int startTime = Time::now().toSec(), currentTime = startTime;
     while(ros::ok())
     {
-        cout << "Main TEST" << endl;
+        //cout << "Main TEST" << endl;
 
         // Break loop & end program after x seconds
         /*currentTime = Time::now().toSec();
@@ -247,7 +247,7 @@ int main(int argc, char **argv) {
             ROS_INFO("Time Elapsed: Ending Program");
             break;
         }*/
-        drive(pub);
+        //drive(pub);
 
         spinOnce();
         rate.sleep();

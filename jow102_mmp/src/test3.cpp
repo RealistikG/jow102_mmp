@@ -190,8 +190,9 @@ void *imageProc(void *paramID){
         //imshow("Mask",imgMask);
         //imshow("Edges",imgEdges);
         imshow("HoughLinesP",imgHoughLinesP);
-        waitKey(25);
+        waitKey(10);
 
+        spinOnce();
         rate.sleep();
     }
     pthread_exit(NULL);
@@ -249,7 +250,7 @@ int main(int argc, char **argv) {
         }*/
         //drive(pub);
 
-        spinOnce();
+        //spinOnce();
         rate.sleep();
     }
     pthread_exit(NULL);

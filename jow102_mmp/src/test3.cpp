@@ -54,7 +54,7 @@ void image_cb(const sensor_msgs::ImageConstPtr& msg)
 void *imageProc(void *paramID){
     long tid;
     tid = (long)paramID;
-    cout << "Thread ID, " << tid << endl;
+    cout << "Thread ID: " << tid << endl;
 
     Rate rate(10);
 

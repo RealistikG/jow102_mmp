@@ -31,6 +31,8 @@ int hThreshold = 15, hMinLineL = 10, hMaxLineG = 90;
 
 int xTrack = 320, yTrack = 0;
 
+//test
+
 void image_cb(const sensor_msgs::ImageConstPtr& msg)
 {
     cv_bridge::CvImagePtr cv_ptr;

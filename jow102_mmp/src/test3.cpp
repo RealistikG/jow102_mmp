@@ -201,12 +201,12 @@ void *imageProc(void *paramID){
 void drive(Publisher pub){
     geometry_msgs::Twist values;
 
-    int deadzone = 40;
+    int deadzone = 35;
     values.linear.x = 0.2;
     if (xTrack>320+deadzone){
-        values.angular.z = -0.08;
+        values.angular.z = -0.1;
     } else if (xTrack<320-deadzone){
-        values.angular.z = 0.08;
+        values.angular.z = 0.1;
     } else values.angular.z = 0;
 
     pub.publish(values);

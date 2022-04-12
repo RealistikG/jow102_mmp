@@ -114,7 +114,7 @@ void *imageProc(void *paramID){
         for( size_t i = 0; i < linesP.size(); i++ )
         {
             Vec4i l = linesP[i];
-            line(imgHoughLinesP, Point(l[0], l[1]), Point(l[2], l[3]), Scalar(0,0,255), 3, LINE_AA);
+            //line(imgHoughLinesP, Point(l[0], l[1]), Point(l[2], l[3]), Scalar(0,0,255), 3, LINE_AA);
             // Point(xStart, yStart), Point(xEnd, yEnd)
 
             // *** LINE TRACKING ***
@@ -201,12 +201,12 @@ void *imageProc(void *paramID){
 void drive(Publisher pub){
     geometry_msgs::Twist values;
 
-    int deadzone = 50;
+    int deadzone = 30;
     values.linear.x = 0.2;
     if (xTrack>320+deadzone){
-        values.angular.z = -0.2;
+        values.angular.z = -0.1;
     } else if (xTrack<320-deadzone){
-        values.angular.z = 0.2;
+        values.angular.z = 0.1;
     } else values.angular.z = 0;
 
     pub.publish(values);

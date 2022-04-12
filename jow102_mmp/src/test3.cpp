@@ -31,8 +31,6 @@ int hThreshold = 15, hMinLineL = 10, hMaxLineG = 90;
 
 int xTrack = 320, yTrack = 0;
 
-//test
-
 void image_cb(const sensor_msgs::ImageConstPtr& msg)
 {
     cv_bridge::CvImagePtr cv_ptr;
@@ -128,10 +126,10 @@ void *imageProc(void *paramID){
                     xStartR=l[0];
                     yStartR=l[1];
                 }
-                if(l[2]<xEndR && l[3]<yEndL){
+                if(l[2]<(xEndR-10) && l[3]<yEndL){
                     xEndL=l[2];
                     yEndL=l[3];
-                } else if(l[2]>xEndL && l[3]<yEndR){
+                } else if(l[2]>(xEndL+10) && l[3]<yEndR){
                     xEndR=l[2];
                     yEndR=l[3];
                 }
@@ -143,10 +141,10 @@ void *imageProc(void *paramID){
                     xStartR=l[2];
                     yStartR=l[3];
                 }
-                if(l[0]<xEndR && l[1]<yEndL){
+                if(l[0]<(xEndR-10) && l[1]<yEndL){
                     xEndL=l[0];
                     yEndL=l[1];
-                } else if(l[0]>xEndL && l[1]<yEndR){
+                } else if(l[0]>(xEndL+10) && l[1]<yEndR){
                     xEndR=l[0];
                     yEndR=l[1];
                 }

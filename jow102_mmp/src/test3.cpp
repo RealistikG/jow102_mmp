@@ -31,6 +31,8 @@ int hThreshold = 15, hMinLineL = 10, hMaxLineG = 90;
 
 int xTrack = 320, yTrack = 0;
 
+bool wait = false;
+
 void image_cb(const sensor_msgs::ImageConstPtr& msg)
 {
     cv_bridge::CvImagePtr cv_ptr;
@@ -64,6 +66,8 @@ void *imageProc(void *paramID){
         currentTime = Time::now().toSec();
         rate.sleep();
     }
+
+    wait = true;
 
     // Main image proc loop
     while(ros::ok()){
@@ -115,7 +119,6 @@ void *imageProc(void *paramID){
         {
             Vec4i l = linesP[i];
             //line(imgHoughLinesP, Point(l[0], l[1]), Point(l[2], l[3]), Scalar(0,0,255), 3, LINE_AA);
-            // Point(xStart, yStart), Point(xEnd, yEnd)
 
             // *** LINE TRACKING ***
             if(l[1]>l[3]){
@@ -155,26 +158,30 @@ void *imageProc(void *paramID){
             // Draws down -> up on L; up -> down on R;
         }
 
-        // draw circles of radius 10 around the xy point
+        // Draw detected lane lines
         bool lBool = false, rBool = false;
         if(xStartL != -1 && yStartL != -1){
-            circle(imgHoughLinesP, Point(xStartL, yStartL), 10, CV_RGB(0,0,255));
-            circle(imgHoughLinesP, Point(xEndL, yEndL), 10, CV_RGB(0,0,255));
+            //circle(imgHoughLinesP, Point(xStartL, yStartL), 10, CV_RGB(0,0,255));
+            //circle(imgHoughLinesP, Point(xEndL, yEndL), 10, CV_RGB(0,0,255));
+            line(imgHoughLinesP, Point(xStartL, yStartL), Point(xEndL, yEndL), Scalar(255,0,0), 3, LINE_AA);
             lBool = true;
         }
         if(xStartR!=-1 && yStartR!=-1){
-            circle(imgHoughLinesP, Point(xStartR, yStartR), 10, CV_RGB(0,0,255));
-            circle(imgHoughLinesP, Point(xEndR, yEndR), 10, CV_RGB(0,0,255));
+            //circle(imgHoughLinesP, Point(xStartR, yStartR), 10, CV_RGB(0,0,255));
+            //circle(imgHoughLinesP, Point(xEndR, yEndR), 10, CV_RGB(0,0,255));
+            line(imgHoughLinesP, Point(xStartR, yStartR), Point(xEndR, yEndR), Scalar(255,0,0), 3, LINE_AA);
             rBool = true;
         }
+
+        // Draw centre line
         int xStartC=-1, yStartC=-1, xEndC=-1, yEndC=-1;
         if(lBool && rBool){
             xStartC=(xStartR+xStartL)/2;
             yStartC=(yStartR+yStartL)/2;
             xEndC=(xEndR+xEndL)/2;
             yEndC=(yEndR+yEndL)/2;
-            circle(imgHoughLinesP, Point(xStartC, yStartC), 10, CV_RGB(0,255,0));
-            circle(imgHoughLinesP, Point(xEndC, yEndC), 10, CV_RGB(0,255,0));
+            //circle(imgHoughLinesP, Point(xStartC, yStartC), 10, CV_RGB(0,255,0));
+            //circle(imgHoughLinesP, Point(xEndC, yEndC), 10, CV_RGB(0,255,0));
             line(imgHoughLinesP, Point(xStartC, yStartC), Point(xEndC, yEndC), Scalar(0,255,0), 3, LINE_AA);
 
             xTrack=(xStartC+xEndC)/2;
@@ -184,30 +191,32 @@ void *imageProc(void *paramID){
             yTrack = 0;
         }
 
-        // Update GUI Windows
-        //imshow("Image", img);
-        //imshow("HSV",imgHSV);
-        //imshow("Mask",imgMask);
-        //imshow("Edges",imgEdges);
+        // Update GUI Window
         imshow("HoughLinesP",imgHoughLinesP);
         waitKey(10);
 
-        //spinOnce();
         rate.sleep();
     }
     pthread_exit(NULL);
 }
 
 void drive(Publisher pub){
-    geometry_msgs::Twist values;
+    if(!wait){
+        return;
+    }
 
+    geometry_msgs::Twist values;
     int deadzone = 35;
-    values.linear.x = 0.2;
     if (xTrack>320+deadzone){
+        values.linear.x = 0.2;
         values.angular.z = -0.1;
     } else if (xTrack<320-deadzone){
+        values.linear.x = 0.2;
         values.angular.z = 0.1;
-    } else values.angular.z = 0;
+    } else {
+        values.angular.z = 0;
+        values.linear.x = 0.4;
+    }
 
     pub.publish(values);
 }

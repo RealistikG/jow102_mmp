@@ -16,4 +16,4 @@ Terminal 2:
 	roslaunch jow102_mmp test1.launch
 
 Terminal 3:
-	rosrun jow102_mmp test1
+	rosrun jow102_mmp test3

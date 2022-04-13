@@ -47,7 +47,7 @@ void image_cb(const sensor_msgs::ImageConstPtr& msg)
     }
 
     //cout << "CB TEST" << endl;
-    ROS_INFO("CB TEST");
+    //ROS_INFO("CB TEST");
     img = cv_ptr->image.clone();
     imshow("Image", cv_ptr->image);
     waitKey(10);

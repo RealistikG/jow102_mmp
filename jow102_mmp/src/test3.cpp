@@ -47,7 +47,7 @@ void image_cb(const sensor_msgs::ImageConstPtr& msg)
     }
 
     //cout << "CB TEST" << endl;
-    //ROS_INFO("CB TEST");
+    ROS_INFO("CB TEST");
     img = cv_ptr->image.clone();
     imshow("Image", cv_ptr->image);
     waitKey(10);
@@ -249,14 +249,6 @@ int main(int argc, char **argv) {
     //int startTime = Time::now().toSec(), currentTime = startTime;
     while(ros::ok())
     {
-        //cout << "Main TEST" << endl;
-
-        // Break loop & end program after x seconds
-        /*currentTime = Time::now().toSec();
-        if(currentTime-startTime>20){
-            ROS_INFO("Time Elapsed: Ending Program");
-            break;
-        }*/
         drive(pub);
 
         spinOnce();

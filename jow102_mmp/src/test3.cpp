@@ -31,7 +31,7 @@ int hThreshold = 15, hMinLineL = 10, hMaxLineG = 90;
 
 int xTrack = 320, yTrack = 0;
 
-bool wait = false;
+bool wait = true;
 
 void image_cb(const sensor_msgs::ImageConstPtr& msg)
 {
@@ -67,7 +67,7 @@ void *imageProc(void *paramID){
         rate.sleep();
     }
 
-    wait = true;
+    wait = false;
 
     // Main image proc loop
     while(ros::ok()){
@@ -201,7 +201,7 @@ void *imageProc(void *paramID){
 }
 
 void drive(Publisher pub){
-    if(!wait){
+    if(wait){
         return;
     }
 

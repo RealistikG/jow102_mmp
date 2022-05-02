@@ -180,9 +180,9 @@ void drive(Publisher pub, geometry_msgs::Twist values){
     // Driving
     int deadzone = 35;
     values.linear.x = 0.2;
-    if (xTrack>320+deadzone || !lBool){
+    if (xTrack>320+deadzone || !rBool){
         values.angular.z = -0.1;
-    } else if (xTrack<320-deadzone || !rBool){
+    } else if (xTrack<320-deadzone || !lBool){
         values.angular.z = 0.1;
     } else {
         values.angular.z = 0;

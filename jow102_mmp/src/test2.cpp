@@ -19,12 +19,12 @@ using namespace ros;
 // Image Windows
 Mat img, imgCrop, imgHSV, imgMask, imgEdges, imgHoughLinesP;
 
-// Canny edge detection values
-int cLowThreshold = 50, cHighThreshold = 150;
-
-int xTrack = 320;
-
+// System startup
 bool wait = true;
+
+// Line Tracking
+bool lBool, rBool;
+int xTrack = 320;
 
 void image_cb(const sensor_msgs::ImageConstPtr& msg)
 {
@@ -51,9 +51,10 @@ void *imageProc(void *paramID){
     tid = (long)paramID;
     cout << "Thread ID: " << tid << endl;
 
+    // Loop rate
     Rate rate(10);
 
-    // Short loop for testing
+    // Startup wait loop
     int startTime = Time::now().toSec(), currentTime = startTime;
     while(currentTime-startTime<3){
         currentTime = Time::now().toSec();
@@ -62,10 +63,8 @@ void *imageProc(void *paramID){
 
     wait = false;
 
-    // Main image proc loop
+    // Image processing loop
     while(ros::ok()){
-        //out << "ImageProc TEST" << endl;
-
         // Crop image
         Rect roi(0,257,640,223);
         imgCrop = img(roi);
@@ -140,13 +139,13 @@ void *imageProc(void *paramID){
         }
 
         // Draw detected lane lines
-        bool lBool = false, rBool = false;
-        if(left[0] != -1 && left[1] != -1){
+        lBool = false, rBool = false;
+        if(left[0] != -1 && left[1] != -1 && left[2] != -1 && left[3] != 1000){
             line(imgHoughLinesP, Point(left[0], left[1]), Point(left[2], left[3]), Scalar(255,0,0), 3, LINE_AA);
             lBool = true;
         }
-        if(right[0] != -1 && right[1] != -1){
-            line(imgHoughLinesP, Point(right[0], right[1]), Point(right[2], right[3]), Scalar(255,0,0), 3, LINE_AA);
+        if(right[0] != -1 && right[1] != -1 && right[2] != 1000 && right[3] != 1000){
+            line(imgHoughLinesP, Point(right[0], right[1]), Point(right[2], right[3]), Scalar(0,0,255), 3, LINE_AA);
             rBool = true;
         }
 
@@ -172,17 +171,18 @@ void *imageProc(void *paramID){
     pthread_exit(NULL);
 }
 
-void drive(Publisher pub){
+void drive(Publisher pub, geometry_msgs::Twist values;){
+    // Wait for startup confirmation
     if(wait){
         return;
     }
 
-    geometry_msgs::Twist values;
+    // Driving
     int deadzone = 35;
     values.linear.x = 0.2;
-    if (xTrack>320+deadzone){
+    if (xTrack>320+deadzone || !lBool){
         values.angular.z = -0.1;
-    } else if (xTrack<320-deadzone){
+    } else if (xTrack<320-deadzone || !rBool){
         values.angular.z = 0.1;
     } else {
         values.angular.z = 0;
@@ -202,12 +202,14 @@ int main(int argc, char **argv) {
 
     // Publisher for driving
     Publisher pub = mainNh.advertise<geometry_msgs::Twist>("cmd_vel", 10);
+    geometry_msgs::Twist values;
 
+    // Loop rate
     Rate rate(10);
+    // Initial startup
     spinOnce();
-    rate.sleep();
 
-    // Create new thread
+    // Create new thread for image processing
     pthread_t thread;
     int rc = pthread_create(&thread, NULL, imageProc, (void *)1);
     if (rc) {
@@ -216,14 +218,19 @@ int main(int argc, char **argv) {
     }
 
     // Main loop
-    //int startTime = Time::now().toSec(), currentTime = startTime;
     while(ros::ok())
     {
-        drive(pub);
-
+        drive(pub, values);
         spinOnce();
         rate.sleep();
     }
+
+    // Stop robot
+    values.linear.x = 0;
+    values.angular.z = 0;
+    pub.publish(values);
+
+    // Close image processing thread
     pthread_exit(NULL);
     return 0;
 }

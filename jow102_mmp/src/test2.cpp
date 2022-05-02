@@ -208,6 +208,7 @@ int main(int argc, char **argv) {
     Rate rate(10);
     // Initial startup
     spinOnce();
+    rate.sleep();
 
     // Create new thread for image processing
     pthread_t thread;

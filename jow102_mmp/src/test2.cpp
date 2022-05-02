@@ -171,7 +171,7 @@ void *imageProc(void *paramID){
     pthread_exit(NULL);
 }
 
-void drive(Publisher pub, geometry_msgs::Twist values;){
+void drive(Publisher pub, geometry_msgs::Twist values){
     // Wait for startup confirmation
     if(wait){
         return;

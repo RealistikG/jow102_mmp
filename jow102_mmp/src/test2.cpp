@@ -1,32 +1,30 @@
-// include ros lib
+// Include ros lib
 #include <ros/ros.h>
 #include <geometry_msgs/Twist.h>
 
-// include opencv2 lib
+// Include opencv2 lib
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <image_transport/image_transport.h>
 #include <cv_bridge/cv_bridge.h>
+
+// Include misc
+#include <pthread.h>
+#include <iostream>
 
 using namespace cv;
 using namespace std;
 using namespace ros;
 
 // Image Windows
-static const string OPENCV_WINDOW = "Image window";
 Mat img, imgCrop, imgHSV, imgMask, imgEdges, imgHoughLinesP;
-
-// Hue, Sat, Value min & max values for colour mask
-int hmin = 0, smin = 0, vmin = 255;
-int hmax = 0, smax = 0, vmax = 255;
 
 // Canny edge detection values
 int cLowThreshold = 50, cHighThreshold = 150;
 
-// HoughLinesP values
-int hThreshold = 15, hMinLineL = 10, hMaxLineG = 90;
+int xTrack = 320;
 
-int xTrack, yTrack;
+bool wait = true;
 
 void image_cb(const sensor_msgs::ImageConstPtr& msg)
 {
@@ -41,197 +39,191 @@ void image_cb(const sensor_msgs::ImageConstPtr& msg)
         return;
     }
 
+    //cout << "CB TEST" << endl;
+    //ROS_INFO("CB TEST");
     img = cv_ptr->image.clone();
-    imshow(OPENCV_WINDOW, cv_ptr->image);
-    //imshow("img",img);
-    waitKey(25);
+    imshow("Image", cv_ptr->image);
+    waitKey(10);
 }
 
-void imageProc(){
-    //imshow("img", img);
-    //waitKey(25);
-    // Crop image
-    Rect roi(0,257,640,223);
-    imgCrop = img(roi);
+void *imageProc(void *paramID){
+    long tid;
+    tid = (long)paramID;
+    cout << "Thread ID: " << tid << endl;
 
-    // Convert image to HSV
-    cvtColor(imgCrop, imgHSV, COLOR_BGR2HSV);
+    Rate rate(10);
 
-    // Trackbars to adjust values for colour mask
-    /*namedWindow("Trackbars",(640,200));
-    createTrackbar("Hue Min","Trackbars",&hmin,179);
-    createTrackbar("Hue Max","Trackbars",&hmax,179);
-    createTrackbar("Sat Min","Trackbars",&smin,255);
-    createTrackbar("Sat Max","Trackbars",&smax,255);
-    createTrackbar("Val Min","Trackbars",&vmin,255);
-    createTrackbar("Val Max","Trackbars",&vmax,255);*/
+    // Short loop for testing
+    int startTime = Time::now().toSec(), currentTime = startTime;
+    while(currentTime-startTime<3){
+        currentTime = Time::now().toSec();
+        rate.sleep();
+    }
 
-    // Trackbars to adjust values for Canny edge detector
-    /*namedWindow("Trackbars2",(640,200));
-    createTrackbar("Low Threshold","Trackbars2",&cLowThreshold,100);
-    if (cLowThreshold*3>255) cHighThreshold = 255;*/
+    wait = false;
 
-    // Trackbars to adjust values for HoughLinesP
-    /*namedWindow("Trackbars3",(640,200));
-    createTrackbar("Threshold","Trackbars3",&hThreshold,100);
-    createTrackbar("Min Line Length","Trackbars3",&hMinLineL,100);
-    createTrackbar("Max Line Gap","Trackbars3",&hMaxLineG,100);*/
+    // Main image proc loop
+    while(ros::ok()){
+        //out << "ImageProc TEST" << endl;
 
-    // Apply colour mask
-    Scalar lower (hmin,smin,vmin);
-    Scalar upper (hmax,smax,vmax);
-    inRange(imgHSV,lower,upper,imgMask);
+        // Crop image
+        Rect roi(0,257,640,223);
+        imgCrop = img(roi);
 
-    // Apply Canny edge detection
-    Canny(imgMask,imgEdges,cLowThreshold,cHighThreshold,3);
-    imgHoughLinesP = imgCrop.clone();
+        // Convert image to HSV
+        cvtColor(imgCrop, imgHSV, COLOR_BGR2HSV);
 
-    // Probabilistic Line Transform ***Code derived from docs.opencv.org tutorial***
-    // Vector to hold results of HoughLinesP detection
-    vector<Vec4i> linesP;
-    HoughLinesP(imgEdges, linesP, 1, CV_PI/180, hThreshold, hMinLineL, hMaxLineG); // Detection
-    int xStartR=-1, xEndR=1000, yStartR=-1, yEndR=1000, xStartL=-1, xEndL=-1, yStartL=-1, yEndL=1000;
-    // Draw lines
-    for( size_t i = 0; i < linesP.size(); i++ )
-    {
-        Vec4i l = linesP[i];
-        line(imgHoughLinesP, Point(l[0], l[1]), Point(l[2], l[3]), Scalar(0,0,255), 3, LINE_AA);
-        // Point(xStart, yStart), Point(xEnd, yEnd)
+        // Apply colour mask
+        Scalar lower (0,0,255);
+        Scalar upper (0,0,255);
+        inRange(imgHSV,lower,upper,imgMask);
 
-        // *** LINE TRACKING ***
-        if(l[1]>l[3]){
-            if(l[0]<320 && l[1]>yStartL){
-                xStartL=l[0];
-                yStartL=l[1];
-            } else if(l[0]>320 && l[1]>yStartR){ //l[3]<yEndR
-                xStartR=l[0];
-                yStartR=l[1];
-            }
-            if(l[2]<xEndR && l[3]<yEndL){
-                xEndL=l[2];
-                yEndL=l[3];
-            } else if(l[2]>xEndL && l[3]<yEndR){
-                xEndR=l[2];
-                yEndR=l[3];
-            }
-        }else{
-            if(l[2]<320 && l[3]>yStartL){ //l[1]<yEndL
-                xStartL=l[2];
-                yStartL=l[3];
-            } else if(l[2]>320 && l[3]>yStartR){ //l[1]<yEndR
-                xStartR=l[2];
-                yStartR=l[3];
-            }
-            if(l[0]<xEndR && l[1]<yEndL){
-                xEndL=l[0];
-                yEndL=l[1];
-            } else if(l[0]>xEndL && l[1]<yEndR){
-                xEndR=l[0];
-                yEndR=l[1];
+        // Apply Canny edge detection
+        Canny(imgMask,imgEdges, 50, 150, 3);
+        imgHoughLinesP = imgCrop.clone();
+
+        // Probabilistic Line Transform ***Code derived from docs.opencv.org tutorial***
+        // Vector to hold results of HoughLinesP detection
+        vector<Vec4i> linesP;
+        HoughLinesP(imgEdges, linesP, 1, CV_PI/180, 15, 10, 90); // Detection
+
+        // Left Line
+        Vec4i left;
+        left[0] = -1;
+        left[1] = -1;
+        left[2] = -1;
+        left[3] = 1000;
+
+        // Right Line
+        Vec4i right;
+        right[0] = -1;
+        right[1] = -1;
+        right[2] = 1000;
+        right[3] = 1000;
+
+        // Loop through vector, select most appropriate lines for lane tracking
+        for( size_t i = 0; i < linesP.size(); i++ )
+        {
+            // *** LINE TRACKING ***
+            Vec4i x = linesP[i];
+            if(x[1]>x[3]){
+                if(x[0]<320 && x[1]>left[1]){
+                    left[0]=x[0];
+                    left[1]=x[1];
+                } else if(x[0]>320 && x[1]>right[1]){
+                    right[0]=x[0];
+                    right[1]=x[1];
+                }
+                if(x[2]<(right[2]-10) && x[3]<left[3]){
+                    left[2]=x[2];
+                    left[3]=x[3];
+                } else if(x[2]>(left[2]+10) && x[3]<right[3]){
+                    right[2]=x[2];
+                    right[3]=x[3];
+                }
+            }else{
+                if(x[2]<320 && x[3]>left[1]){
+                    left[0]=x[2];
+                    left[1]=x[3];
+                } else if(x[2]>320 && x[3]>right[1]){
+                    right[0]=x[2];
+                    right[1]=x[3];
+                }
+                if(x[0]<(right[2]-10) && x[1]<left[3]){
+                    left[2]=x[0];
+                    left[3]=x[1];
+                } else if(x[0]>(left[2]+10) && x[1]<right[3]){
+                    right[2]=x[0];
+                    right[3]=x[1];
+                }
             }
         }
 
-        // Rline -> if xStartR < 320 && yStartR > prevYStartR;
-        // Lline -> if xEndL > 320 && yEndL > prevYEndL;
-        // Draws down -> up on L; up -> down on R;
-    }
+        // Draw detected lane lines
+        bool lBool = false, rBool = false;
+        if(left[0] != -1 && left[1] != -1){
+            line(imgHoughLinesP, Point(left[0], left[1]), Point(left[2], left[3]), Scalar(255,0,0), 3, LINE_AA);
+            lBool = true;
+        }
+        if(right[0] != -1 && right[1] != -1){
+            line(imgHoughLinesP, Point(right[0], right[1]), Point(right[2], right[3]), Scalar(255,0,0), 3, LINE_AA);
+            rBool = true;
+        }
 
-    // draw circles of radius 10 around the xy point
-    bool lBool = false, rBool = false;
-    if(xStartL != -1 && yStartL != -1){
-        circle(imgHoughLinesP, Point(xStartL, yStartL), 10, CV_RGB(0,0,255));
-        circle(imgHoughLinesP, Point(xEndL, yEndL), 10, CV_RGB(0,0,255));
-        lBool = true;
-    }
-    if(xStartR!=-1 && yStartR!=-1){
-        circle(imgHoughLinesP, Point(xStartR, yStartR), 10, CV_RGB(0,0,255));
-        circle(imgHoughLinesP, Point(xEndR, yEndR), 10, CV_RGB(0,0,255));
-        rBool = true;
-    }
-    int xStartC=-1, yStartC=-1, xEndC=-1, yEndC=-1;
-    if(lBool && rBool){
-        xStartC=(xStartR+xStartL)/2;
-        yStartC=(yStartR+yStartL)/2;
-        xEndC=(xEndR+xEndL)/2;
-        yEndC=(yEndR+yEndL)/2;
-        circle(imgHoughLinesP, Point(xStartC, yStartC), 10, CV_RGB(0,255,0));
-        circle(imgHoughLinesP, Point(xEndC, yEndC), 10, CV_RGB(0,255,0));
-        line(imgHoughLinesP, Point(xStartC, yStartC), Point(xEndC, yEndC), Scalar(0,255,0), 3, LINE_AA);
+        // Centre line
+        Vec4i centre;
+        if(lBool && rBool){
+            centre[0] = (right[0]+left[0])/2;
+            centre[1] = (right[1]+left[1])/2;
+            centre[2] = (right[2]+left[2])/2;
+            centre[3] = (right[3]+left[3])/2;
+            line(imgHoughLinesP, Point(centre[0], centre[1]), Point(centre[2], centre[3]), Scalar(0,255,0), 3, LINE_AA);
+            xTrack = (centre[0]+centre[2])/2;
+        } else {
+            xTrack = 320;
+        }
 
-        xTrack=(xStartC+xEndC)/2;
-        yTrack=(yStartC+yEndC)/2;
-    } else {
-        xTrack = 320;
-        yTrack = 0;
-    }
+        // Update GUI Window
+        imshow("HoughLinesP",imgHoughLinesP);
+        waitKey(10);
 
-    // Update GUI Windows
-    //imshow("HSV",imgHSV);
-    //imshow("Mask",imgMask);
-    //imshow("Edges",imgEdges);
-    imshow("HoughLinesP",imgHoughLinesP);
-    waitKey(25);
+        rate.sleep();
+    }
+    pthread_exit(NULL);
 }
 
-/*void drive(){
-    NodeHandle driveNh;
-    Publisher pub = driveNh.advertise<geometry_msgs::Twist>("cmd_vel", 10);
-    geometry_msgs::Twist values;
+void drive(Publisher pub){
+    if(wait){
+        return;
+    }
 
-    int deadzone = 100;
+    geometry_msgs::Twist values;
+    int deadzone = 35;
     values.linear.x = 0.2;
     if (xTrack>320+deadzone){
-        values.angular.z = -0.2;
+        values.angular.z = -0.1;
     } else if (xTrack<320-deadzone){
-        values.angular.z = 0.2;
-    } else values.angular.z = 0;
+        values.angular.z = 0.1;
+    } else {
+        values.angular.z = 0;
+    }
 
     pub.publish(values);
-}*/
+}
 
 int main(int argc, char **argv) {
-    // Initialize the ROS system.
-    init(argc, argv, "test");
-
-    // Establish this program as a ROS node.
+    // Initialize ROS
+    init(argc, argv, "jow102_mmp");
     NodeHandle mainNh;
 
-    // Subscribe to input image topic using image transport.
+    // Subscribe to input image topic using image transport
     image_transport::ImageTransport it(mainNh);
     image_transport::Subscriber sub = it.subscribe("/camera/rgb/image_raw", 1, image_cb);
-    namedWindow(OPENCV_WINDOW);
 
-    // Extra single thread Asyncspinner to help with callback functions blocking
-    AsyncSpinner spinner(1);
-    spinner.start();
+    // Publisher for driving
+    Publisher pub = mainNh.advertise<geometry_msgs::Twist>("cmd_vel", 10);
 
-    Rate r(10); // 10Hz
+    Rate rate(10);
     spinOnce();
-    r.sleep();
+    rate.sleep();
 
-    // Small loop to give the callback time to run.
-    int startTime = Time::now().toSec(), currentTime = startTime;
-    while(currentTime-startTime<0.5){
-        currentTime = Time::now().toSec();
+    // Create new thread
+    pthread_t thread;
+    int rc = pthread_create(&thread, NULL, imageProc, (void *)1);
+    if (rc) {
+        cout << "Error:unable to create thread," << rc << endl;
+        exit(-1);
     }
 
     // Main loop
-    startTime = Time::now().toSec();
-    while(ros::ok)
+    //int startTime = Time::now().toSec(), currentTime = startTime;
+    while(ros::ok())
     {
-        // Break loop & end program after x seconds
-        currentTime = Time::now().toSec();
-        if(currentTime-startTime>10){
-            ROS_INFO("Time Elapsed: Ending Program");
-            break;
-        }
-
-        imageProc();
+        drive(pub);
 
         spinOnce();
-        r.sleep();
+        rate.sleep();
     }
+    pthread_exit(NULL);
     return 0;
 }
-
-

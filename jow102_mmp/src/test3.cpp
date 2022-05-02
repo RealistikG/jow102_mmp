@@ -113,8 +113,11 @@ void *imageProc(void *paramID){
         // Vector to hold results of HoughLinesP detection
         vector<Vec4i> linesP;
         HoughLinesP(imgEdges, linesP, 1, CV_PI/180, hThreshold, hMinLineL, hMaxLineG); // Detection
+
+        //  Variables for storing most appropriate lines
         int xStartR=-1, xEndR=1000, yStartR=-1, yEndR=1000, xStartL=-1, xEndL=-1, yStartL=-1, yEndL=1000;
-        // Draw lines
+
+        // Loop through vector, select most appropriate lines for lane tracking
         for( size_t i = 0; i < linesP.size(); i++ )
         {
             Vec4i l = linesP[i];

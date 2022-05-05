@@ -12,6 +12,7 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   cv_bridge
   image_transport
+  gazebo_msgs
 )
 
 find_package(OpenCV)
@@ -141,9 +142,8 @@ include_directories(
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
 # add_executable(${PROJECT_NAME}_node src/jow102_mmp_node.cpp)
-add_executable(test1 src/test1.cpp)
-add_executable(test2 src/test2.cpp)
-add_executable(test3 src/test3.cpp)
+add_executable(laneFollow src/laneFollow.cpp)
+add_executable(poseLogger src/poseLogger.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -160,9 +160,8 @@ add_executable(test3 src/test3.cpp)
 #   ${catkin_LIBRARIES}
 # )
 
-target_link_libraries(test1 ${catkin_LIBRARIES} ${OpenCV_LIBRARIES})
-target_link_libraries(test2 ${catkin_LIBRARIES} ${OpenCV_LIBRARIES})
-target_link_libraries(test3 ${catkin_LIBRARIES} ${OpenCV_LIBRARIES})
+target_link_libraries(laneFollow ${catkin_LIBRARIES} ${OpenCV_LIBRARIES})
+target_link_libraries(poseLogger ${catkin_LIBRARIES})
 
 #${OpenCV_INCLUDE_DIRS}
 

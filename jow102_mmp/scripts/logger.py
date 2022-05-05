@@ -7,7 +7,7 @@ from gazebo_msgs.msg import ModelStates
 
 import csv
 
-robot_name = 'turtlebot3_burger'
+robot_name = 'turtlebot3_waffle_pi'
 fieldnames = ['timestamp', 'position_x', 'position_y', 'position_z', 'orientation_x', 'orientation_y', 'orientation_z', 'orientation_w']
 
 

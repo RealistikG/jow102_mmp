@@ -169,6 +169,8 @@ void *imageProc(void *paramID){
         waitKey(10);
 
         rate.sleep();
+
+        destroyWindow("HoughLinesP");
     }
     pthread_exit(NULL);
 }

@@ -3,16 +3,15 @@
 #include <gazebo_msgs/ModelStates.h>
 #include <iostream>
 #include <fstream>
-#include <string>
 
 //char name = "test";
-int x = 0, int y = 0;
+int xPos = 0, yPos = 0;
 
 void logger_cb(const gazebo_msgs::ModelStates& msg)
 {
     //name = msg.name;
-    x = msg.pose.position.x;
-    y = msg.pose.position.y;
+    xPos = msg.pose.position.x;
+    yPos = msg.pose.position.y;
 }
 
 int main(int argc, char **argv) {
@@ -35,7 +34,7 @@ int main(int argc, char **argv) {
     while(ros::ok())
     {
         ros::spinOnce();
-        logFile << "%d, %d", x, y << "\n"; //%s, %d", string1, string2, double1 << endl;
+        logFile << "%d, %d", &xPos, &yPos << "\n"; //%s, %d", string1, string2, double1 << endl;
         rate.sleep();
     }
     return 0;

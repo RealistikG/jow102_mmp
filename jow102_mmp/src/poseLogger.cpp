@@ -5,7 +5,7 @@
 #include <fstream>
 #include <string>
 
-string name = "test";
+char name = "test";
 
 void logger_cb(const gazebo_msgs::ModelStates& msg)
 {

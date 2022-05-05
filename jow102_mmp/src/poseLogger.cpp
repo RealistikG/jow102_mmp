@@ -4,7 +4,7 @@
 #include <iostream>
 #include <fstream>
 
-String name = "test";
+string name = "test";
 
 void logger_cb(const gazebo_msgs::ModelStates& msg)
 {
@@ -22,7 +22,7 @@ int main(int argc, char **argv) {
     logFile.open ("poseLog.csv");
 
     // Loop rate
-    Rate rate(10);
+    ros::Rate rate(10);
     // Initial startup
     spinOnce();
     rate.sleep();

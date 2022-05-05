@@ -3,7 +3,7 @@
     <arg name="x_pos" default="-1.41"/>
     <arg name="y_pos" default="-21.21"/>
     <arg name="z_pos" default="1.0"/>
-    <arg name="y_rot" value="0.0"/>
+    <arg name="y_rot" value="-3.12"/>
 
     <include file="$(find gazebo_ros)/launch/empty_world.launch">
         <arg name="world_name" value="$(find jow102_mmp)/worlds/looped_test_env_scaled_lit.world"/>

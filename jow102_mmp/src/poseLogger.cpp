@@ -3,6 +3,7 @@
 #include <gazebo_msgs/ModelStates.h>
 #include <iostream>
 #include <fstream>
+#include <string>
 
 string name = "test";
 

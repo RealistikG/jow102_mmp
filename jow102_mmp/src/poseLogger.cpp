@@ -34,7 +34,7 @@ int main(int argc, char **argv) {
     while(ros::ok())
     {
         ros::spinOnce();
-        logFile << "%d, %d", &xPos, &yPos << "\n"; //%s, %d", string1, string2, double1 << endl;
+        logFile << "%d, %d, \n", xPos, yPos; //%s, %d", string1, string2, double1 << endl;
         rate.sleep();
     }
     return 0;

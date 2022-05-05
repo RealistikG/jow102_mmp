@@ -5,7 +5,7 @@
 #include <fstream>
 
 //char name = "test";
-int xPos = 0, yPos = 0;
+double xPos = 0, yPos = 0;
 
 void logger_cb(const gazebo_msgs::ModelStates& msg)
 {
@@ -35,7 +35,7 @@ int main(int argc, char **argv) {
     {
         ros::spinOnce();
         //std::cout << xPos;
-        logFile << xPos << yPos << std::endl; //%s, %d", string1, string2, double1 << endl;
+        logFile << xPos << std::endl; //%s, %d", string1, string2, double1 << endl;
         rate.sleep();
     }
 

@@ -10,8 +10,8 @@ double xPos = 0, yPos = 0;
 void logger_cb(const gazebo_msgs::ModelStates& msg)
 {
     //name = msg.name;
-    xPos = msg.pose[0].position.x;
-    yPos = msg.pose[0].position.y;
+    xPos = msg.pose[1].position.x;
+    yPos = msg.pose[1].position.y;
 }
 
 int main(int argc, char **argv) {

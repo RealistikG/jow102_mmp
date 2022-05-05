@@ -27,16 +27,22 @@ int main(int argc, char **argv) {
     // Loop rate
     ros::Rate rate(10);
     // Initial startup
-    ros::spinOnce();
-    rate.sleep();
+    //ros::spinOnce();
+    //rate.sleep();
 
     // Main loop
     while(ros::ok())
     {
         ros::spinOnce();
-        //std::cout << xPos;
-        logFile << xPos << std::endl; //%s, %d", string1, string2, double1 << endl;
-        rate.sleep();
+
+        logFile << xPos << "," << yPos << std::endl; //%s, %d", string1, string2, double1 << endl;
+
+        // Short loop for testing
+        double startTime = Time::now().toSec(), currentTime = startTime;
+        while(currentTime-startTime<0.5){
+            currentTime = Time::now().toSec();
+            rate.sleep();
+        }
     }
 
     logFile.close();

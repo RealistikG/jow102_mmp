@@ -5,11 +5,14 @@
 #include <fstream>
 #include <string>
 
-char name = "test";
+//char name = "test";
+int x = 0, int y = 0;
 
 void logger_cb(const gazebo_msgs::ModelStates& msg)
 {
-    name = msg.name;
+    //name = msg.name;
+    x = msg.pose.position.x;
+    y = msg.pose.position.y;
 }
 
 int main(int argc, char **argv) {
@@ -32,7 +35,7 @@ int main(int argc, char **argv) {
     while(ros::ok())
     {
         ros::spinOnce();
-        logFile << "%s", name, std::endl; //%s, %d", string1, string2, double1 << endl;
+        logFile << "%d, %d", x, y << "\n"; //%s, %d", string1, string2, double1 << endl;
         rate.sleep();
     }
     return 0;

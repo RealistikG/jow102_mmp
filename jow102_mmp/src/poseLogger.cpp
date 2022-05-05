@@ -38,9 +38,9 @@ int main(int argc, char **argv) {
         logFile << xPos << "," << yPos << std::endl; //%s, %d", string1, string2, double1 << endl;
 
         // Short loop for testing
-        double startTime = Time::now().toSec(), currentTime = startTime;
+        double startTime = ros::Time::now().toSec(), currentTime = startTime;
         while(currentTime-startTime<0.5){
-            currentTime = Time::now().toSec();
+            currentTime = ros::Time::now().toSec();
             rate.sleep();
         }
     }

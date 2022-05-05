@@ -79,7 +79,6 @@ void *imageProc(void *paramID){
 
         // Apply Canny edge detection
         Canny(imgMask,imgEdges, 50, 150, 3);
-        imgHoughLinesP = imgCrop.clone();
 
         // Probabilistic Line Transform ***Code derived from docs.opencv.org tutorial***
         // Vector to hold results of HoughLinesP detection
@@ -137,6 +136,9 @@ void *imageProc(void *paramID){
                 }
             }
         }
+
+        // Create a clone of original cropped BGR image
+        imgHoughLinesP = imgCrop.clone();
 
         // Draw detected lane lines
         lBool = false, rBool = false;

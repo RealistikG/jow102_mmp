@@ -13,8 +13,8 @@ void logger_cb(const gazebo_msgs::ModelStates& msg)
 
 int main(int argc, char **argv) {
     // Initialize ROS
-    init(argc, argv, "Pose_Logger");
-    NodeHandle mainNh;
+    ros::init(argc, argv, "Pose_Logger");
+    ros::NodeHandle mainNh;
 
     ros::Subscriber sub = mainNh.subscribe("gazebo/model_states", 10, &logger_cb);
 
@@ -24,13 +24,13 @@ int main(int argc, char **argv) {
     // Loop rate
     ros::Rate rate(10);
     // Initial startup
-    spinOnce();
+    ros::spinOnce();
     rate.sleep();
 
     // Main loop
     while(ros::ok())
     {
-        spinOnce();
+        ros::spinOnce();
         logFile << "%s", name, std::endl; //%s, %d", string1, string2, double1 << endl;
         rate.sleep();
     }

@@ -13,7 +13,7 @@ Terminal 1:
 
 Terminal 2:
 	export TURTLEBOT3_MODEL=waffle_pi
-	roslaunch jow102_mmp test1.launch
+	roslaunch jow102_mmp jow102_mmp.launch
 
 Terminal 3:
-	rosrun jow102_mmp test3
+	rosrun jow102_mmp laneFollow

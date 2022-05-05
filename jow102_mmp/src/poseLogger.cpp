@@ -4,7 +4,7 @@
 #include <iostream>
 #include <fstream>
 
-String name;
+String name = "test";
 
 void logger_cb(const gazebo_msgs::ModelStates& msg)
 {
@@ -31,7 +31,7 @@ int main(int argc, char **argv) {
     while(ros::ok())
     {
         spinOnce();
-        logFile << "%s", name, endl; //%s, %d", string1, string2, double1 << endl;
+        logFile << "%s", name, std::endl; //%s, %d", string1, string2, double1 << endl;
         rate.sleep();
     }
     return 0;

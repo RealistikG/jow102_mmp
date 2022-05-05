@@ -22,7 +22,7 @@ int main(int argc, char **argv) {
     ros::Subscriber sub = mainNh.subscribe("gazebo/model_states", 10, &logger_cb);
 
     std::ofstream logFile;
-    logFile.open ("poseLog.csv");
+    logFile.open ("/impacs/jow102/catkin_ws/src/jow102_mmp/poseLog.csv");
 
     // Loop rate
     ros::Rate rate(10);

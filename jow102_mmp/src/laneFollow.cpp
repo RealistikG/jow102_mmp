@@ -226,7 +226,7 @@ int main(int argc, char **argv) {
     // Main loop
     while(ros::ok())
     {
-        //drive(pub, values);
+        drive(pub, values);
         spinOnce();
         rate.sleep();
     }

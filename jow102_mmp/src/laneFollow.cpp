@@ -103,7 +103,7 @@ void *imageProc(void *paramID){
         {
             // *** LINE TRACKING ***
             Vec4i x = linesP[i];
-            line(test, Point(l[0], l[1]), Point(l[2], l[3]), Scalar(0,0,255), 3, LINE_AA);
+            line(test, Point(x[0], x[1]), Point(x[2], x[3]), Scalar(0,0,255), 3, LINE_AA);
             if(x[1]>x[3]){
                 if(x[0]<320 && x[1]>left[1]){
                     left[0]=x[0];

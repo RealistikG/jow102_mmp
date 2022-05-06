@@ -17,7 +17,7 @@ using namespace std;
 using namespace ros;
 
 // Image Windows
-Mat img, imgCrop, imgHSV, imgMask, imgEdges, imgHoughLinesP;
+Mat img, imgCrop, imgHSV, imgMask, imgEdges, imgHoughLinesP, test;
 
 // System startup
 bool wait = true;
@@ -38,15 +38,14 @@ void image_cb(const sensor_msgs::ImageConstPtr& msg)
         ROS_ERROR("cv_bridge exception: %s", e.what());
         return;
     }
-
-    //cout << "CB TEST" << endl;
-    //ROS_INFO("CB TEST");
+    // Update image ready for processing
     img = cv_ptr->image.clone();
     imshow("Image", cv_ptr->image);
     waitKey(10);
 }
 
 void *imageProc(void *paramID){
+    // Print new thread information
     long tid;
     tid = (long)paramID;
     cout << "Thread ID: " << tid << endl;
@@ -54,13 +53,12 @@ void *imageProc(void *paramID){
     // Loop rate
     Rate rate(10);
 
-    // Startup wait loop
+    // Startup wait loop (3 seconds) using ros time
     int startTime = Time::now().toSec(), currentTime = startTime;
     while(currentTime-startTime<3){
         currentTime = Time::now().toSec();
         rate.sleep();
     }
-
     wait = false;
 
     // Image processing loop
@@ -80,7 +78,6 @@ void *imageProc(void *paramID){
         // Apply Canny edge detection
         Canny(imgMask,imgEdges, 50, 150, 3);
 
-        // Probabilistic Line Transform ***Code derived from docs.opencv.org tutorial***
         // Vector to hold results of HoughLinesP detection
         vector<Vec4i> linesP;
         HoughLinesP(imgEdges, linesP, 1, CV_PI/180, 15, 10, 90); // Detection
@@ -99,11 +96,14 @@ void *imageProc(void *paramID){
         right[2] = 1000;
         right[3] = 1000;
 
+        test = imgCrop.clone();
+
         // Loop through vector, select most appropriate lines for lane tracking
         for( size_t i = 0; i < linesP.size(); i++ )
         {
             // *** LINE TRACKING ***
             Vec4i x = linesP[i];
+            line(test, Point(l[0], l[1]), Point(l[2], l[3]), Scalar(0,0,255), 3, LINE_AA);
             if(x[1]>x[3]){
                 if(x[0]<320 && x[1]>left[1]){
                     left[0]=x[0];
@@ -165,7 +165,12 @@ void *imageProc(void *paramID){
         }
 
         // Update GUI Window
-        imshow("HoughLinesP",imgHoughLinesP);
+        imshow("Crop", imgCrop);
+        imshow("HSV", imgHSV);
+        imshow("Mask", imgMask);
+        imshow("Edges", imgEdges);
+        imshow("HoughLinesP", test);
+        imshow("Final Output",imgHoughLinesP);
         waitKey(10);
 
         rate.sleep();
@@ -223,7 +228,7 @@ int main(int argc, char **argv) {
     // Main loop
     while(ros::ok())
     {
-        drive(pub, values);
+        //drive(pub, values);
         spinOnce();
         rate.sleep();
     }

@@ -96,8 +96,6 @@ void *imageProc(void *paramID){
         right[2] = 1000;
         right[3] = 1000;
 
-        test = imgCrop.clone();
-
         // Loop through vector, select most appropriate lines for lane tracking
         for( size_t i = 0; i < linesP.size(); i++ )
         {
